@@ -1,44 +1,42 @@
 #! /usr/bin/env python
 
-import weechat
 import urllib
 import json
+import sys
 
-SCRIPT_NAME = "weather"
-SCRIPT_AUTHOR = "Eater"
-SCRIPT_VERSION = "0.0"
-SCRIPT_LICENSE = "GPL3"
-SCRIPT_DESC = "Check weather"
+def getWeather(zipcode):
+    rdata = {}
+    if len(zipcode) != 5 or not zipcode.isdigit():
+        rdata["error"] = "Zip code is not in 5-digit format!"
+    else:
+        try:
+            page = urllib.urlopen("http://api.worldweatheronline.com/free/v1/weather.ashx?q=%s&format=json&fx=no&includelocation=yes&key=YOURKEYHERE" % zipcode).read()
+            wdata = json.loads(page)["data"]
+            if "error" in wdata:
+                rdata["error"] = "No data found for %s!" % zipcode
+            else:
+                area = wdata['nearest_area'][0]
+                weather = wdata['current_condition'][0]
+                rdata["city"] = area['areaName'][0]['value']
+                rdata["state"] = area['region'][0]['value']
+                rdata["tempF"] = weather['temp_F']
+                rdata["tempC"] = weather['temp_C']
+                rdata["desc"] = weather['weatherDesc'][0]['value']
+                rdata["humidity"] = weather['humidity']
+        except IOError:
+            rdata["error"] = "Unable to connect to weather API!"
 
-def weather_cb(data, signal, signal_data):
-    server = signal.split(',')[0]
-    channel = signal_data.split()[2]
-    buff = weechat.info_get("irc_buffer", "%s,%s" % (server, channel))
-    msg = signal_data.split(':')[2]
-    argv = msg.split()
-    if channel[0] == '#' and argv[0] == "!w":
-        if len(argv[1]) == 5 and argv[1].isdigit():
-            try:
-                page = urllib.urlopen("http://api.worldweatheronline.com/free/v1/weather.ashx?q=%s&format=json&fx=no&includelocation=yes&key=YOURKEYHERE" % argv[1]).read()
-                wdata = json.loads(page)['data']
-                if 'error' in wdata:
-                    weechat.command(buff, "ERROR: No data on %s!" % argv[1])
-                else:
-                    area = wdata['nearest_area'][0]
-                    weather = wdata['current_condition'][0]
-                    city = area['areaName'][0]['value']
-                    state = area['region'][0]['value']
-                    tempF = weather['temp_F']
-                    tempC = weather['temp_C']
-                    desc = weather['weatherDesc'][0]['value']
-                    humidity = weather['humidity']
-                    weechat.command(buff, "%s, %s: %s. %s F / %s C, humidity %s%%" % (city, state, desc, tempF, tempC, humidity))
-            except IOError:
-                weechat.command(buff, "ERROR: Cannot access weather API!")
+    return rdata
+
+def main():
+    if len(sys.argv) != 2:
+        sys.stderr.write("Usage: weather.py <zip code>\n")
+    else:
+        data = getWeather(sys.argv[1])
+        if "error" in data:
+            sys.stderr.write("%s\n" % data["error"])
         else:
-            weechat.command(buff, "ERROR: !w <zip code>")
-    return weechat.WEECHAT_RC_OK
+            print data
 
-if weechat.register(SCRIPT_NAME, SCRIPT_AUTHOR, SCRIPT_VERSION, SCRIPT_LICENSE, SCRIPT_DESC, "", ""):
-    weechat.hook_signal("*,irc_in_privmsg", "weather_cb", "")
-
+if __name__ == "__main__":
+    main()
