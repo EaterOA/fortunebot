@@ -17,7 +17,7 @@ def getInsult():
 def main():
     insult = getInsult()
     if insult:
-        print getInsult()
+        print insult
 
 if __name__ == "__main__":
     main()

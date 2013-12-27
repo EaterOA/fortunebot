@@ -1,4 +1,6 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
 
 """
 Very simple skeleton lugbot based off of irclib's testbot
@@ -13,7 +15,20 @@ The known commands are:
 
 """
 
+
 import irc.bot
+import os, sys, inspect
+
+botPath = os.path.realpath(inspect.getfile(inspect.currentframe()))
+botDir = os.path.split(botPath)[0]
+rootDir = os.path.dirname(botDir)
+scriptDir = os.path.join(rootDir, "scripts")
+if scriptDir not in sys.path:
+    sys.path.insert(0, scriptDir)
+
+from insult import getInsult
+from weather import getWeather
+
 
 class LugBot(irc.bot.SingleServerIRCBot):
     def __init__(self, channel, nickname, server, port=6667):
@@ -53,9 +68,26 @@ class LugBot(irc.bot.SingleServerIRCBot):
                 voiced = chobj.voiced()
                 voiced.sort()
                 c.notice(nick, "Voiced: " + ", ".join(voiced))
+        elif cmd == "!insult":
+            insult = getInsult()
+            if insult:
+                c.privmsg(self.channel, insult)
+            else:
+                c.privmsg(self.channel, "ERROR: Unable to retrieve insult")
+        elif cmd == "!w":
+            zipcode = "90024"
+            if args:
+                zipcode = args[0]
+            wdata = getWeather(zipcode)
+            if "error" in wdata:
+                c.privmsg(self.channel, "ERROR: %s" % wdata["error"])
+            else:
+                info = ["city", "state", "desc", "tempF", "tempC", "humidity"]
+                infoT = tuple([wdata[i] for i in info])
+                c.privmsg(self.channel, u"%s, %s: %s. %s°F (%s°C), humidity: %s%%" % infoT)
+                 
 
 def main():
-    import sys
     if len(sys.argv) != 4:
         print("Usage: lugbot <server[:port]> <channel> <nickname>")
         sys.exit(1)
