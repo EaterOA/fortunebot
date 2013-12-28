@@ -23,6 +23,9 @@ The known commands are:
     !fortune [category]
     --  Prints a short fortune, optionally of a specified category
 
+    !8ball
+    --  Prints a random magic 8-ball reply
+
 """
 
 
@@ -40,6 +43,7 @@ if scriptDir not in sys.path:
 import insult
 import weather
 import fortune
+import magic8ball
 
 class LugBot(irc.bot.SingleServerIRCBot):
     def __init__(self, channel, nickname, server, port=6667):
@@ -80,6 +84,9 @@ class LugBot(irc.bot.SingleServerIRCBot):
             if args:
                 category = args[0]
             msg = fortune.getFortune(category)
+            c.privmsg(self.channel, msg)
+        elif cmd == "!8ball":
+            msg = magic8ball.get8Ball()
             c.privmsg(self.channel, msg)
                  
 
