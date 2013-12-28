@@ -10,12 +10,23 @@ python lugbot.py <server[:port]> <channel> <nickname>
 
 The known commands are:
 
-    !stats -- Prints some channel information
-    !die -- Commit roboticide
+    !die
+    --  Commit roboticide
+
+    !insult
+    --  Prints a shakespearean insult
+
+    !w <zip code>
+    --  Prints information about the weather at zip code. Zip code defaults
+        to 90024 (Los Angeles)
+
+    !fortune [category]
+    --  Prints a short fortune, optionally of a specified category
 
 """
 
 
+from optparse import OptionParser
 import irc.bot
 import os, sys, inspect
 
@@ -26,9 +37,9 @@ scriptDir = os.path.join(rootDir, "scripts")
 if scriptDir not in sys.path:
     sys.path.insert(0, scriptDir)
 
-from insult import getInsult
-from weather import getWeather
-
+import insult
+import weather
+import fortune
 
 class LugBot(irc.bot.SingleServerIRCBot):
     def __init__(self, channel, nickname, server, port=6667):
@@ -55,58 +66,32 @@ class LugBot(irc.bot.SingleServerIRCBot):
 
         if cmd == "!die":
             self.die()
-        elif cmd == "!stats":
-            for chname, chobj in self.channels.items():
-                c.notice(nick, "--- Channel statistics ---")
-                c.notice(nick, "Channel: " + chname)
-                users = chobj.users()
-                users.sort()
-                c.notice(nick, "Users: " + ", ".join(users))
-                opers = chobj.opers()
-                opers.sort()
-                c.notice(nick, "Opers: " + ", ".join(opers))
-                voiced = chobj.voiced()
-                voiced.sort()
-                c.notice(nick, "Voiced: " + ", ".join(voiced))
         elif cmd == "!insult":
-            insult = getInsult()
-            if insult:
-                c.privmsg(self.channel, insult)
-            else:
-                c.privmsg(self.channel, "ERROR: Unable to retrieve insult")
+            msg = insult.getInsult()
+            c.privmsg(self.channel, msg)
         elif cmd == "!w":
             zipcode = "90024"
             if args:
                 zipcode = args[0]
-            wdata = getWeather(zipcode)
-            if "error" in wdata:
-                c.privmsg(self.channel, "ERROR: %s" % wdata["error"])
-            else:
-                info = ["city", "state", "desc", "tempF", "tempC", "humidity"]
-                infoT = tuple([wdata[i] for i in info])
-                c.privmsg(self.channel, u"%s, %s: %s. %s°F (%s°C), humidity: %s%%" % infoT)
+            msg = weather.getWeather(zipcode)
+            c.privmsg(self.channel, msg)
+        elif cmd == "!fortune":
+            category = None
+            if args:
+                category = args[0]
+            msg = fortune.getFortune(category)
+            c.privmsg(self.channel, msg)
                  
 
-def main():
-    if len(sys.argv) != 4:
-        print("Usage: lugbot <server[:port]> <channel> <nickname>")
-        sys.exit(1)
-
-    s = sys.argv[1].split(":", 1)
-    server = s[0]
-    if len(s) == 2:
-        try:
-            port = int(s[1])
-        except ValueError:
-            print("Error: Erroneous port.")
-            sys.exit(1)
-    else:
-        port = 6667
-    channel = sys.argv[2]
-    nickname = sys.argv[3]
-
+def main(server, port, channel, nickname):
     bot = LugBot(channel, nickname, server, port)
     bot.start()
 
 if __name__ == "__main__":
-    main()
+    usage = "Usage: %prog [options] <server> <channel> <nickname>"
+    parser = OptionParser(usage)
+    parser.add_option("-p", action="store", type="int", dest="port", default=6667, help="specify port, default 6667")
+    options, args = parser.parse_args()
+    if len(args) < 3:
+        parser.error("You must specify a server, channel, and nickname")
+    main(args[0], options.port, args[1], args[2])

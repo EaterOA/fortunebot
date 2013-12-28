@@ -11,13 +11,12 @@ def getInsult():
         match = re.search("^.+?</font>$", page, re.M)
         insult = match.group(0).split('<')[0]
     except IOError:
-        sys.stderr.write("Error while retrieving insult!\n")
+        insult = "ERROR: Unable to retrieve insult"
     return insult
 
 def main():
     insult = getInsult()
-    if insult:
-        print insult
+    print insult
 
 if __name__ == "__main__":
     main()
