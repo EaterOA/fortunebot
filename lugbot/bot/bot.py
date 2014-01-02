@@ -31,9 +31,7 @@ The known commands are:
 
 from optparse import OptionParser
 import irc.bot
-import os, sys
-
-from lugbot.scripts import insult, weather, fortune, magic8ball
+from lugbot.scripts import *
 
 class LugBot(irc.bot.SingleServerIRCBot):
     def __init__(self, server, port, channel, nickname):

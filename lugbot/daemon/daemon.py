@@ -14,56 +14,51 @@ import os, sys, signal, logging
 class Daemon():
     def __init__(self, server, port, channel, nickname, isDaemon=False, piddir="/tmp/", logdir="/tmp/"):
         self.isDaemon = isDaemon
-        self.pidpath = "%s/%s" % (piddir, "lugbot.pid")
-        self.logpath = "%s/%s" % (logdir, "lugbot.log")
+        self.pidpath = "{0}/{1}".format(piddir, "lugbot.pid")
+        self.logpath = "{0}/{1}".format(logdir, "lugbot.log")
         self.logger = None
-        self.isLogging = False
         signal.signal(signal.SIGTERM, self.sigterm_handler)
         signal.signal(signal.SIGINT, self.sigterm_handler)
         signal.signal(signal.SIGHUP, self.sighup_handler)
         self.bot = LugBot(server, port, channel, nickname)
 
     def __printError(self, msg):
-        if self.isLogging:
+        if self.logger is not None:
             self.logger.error(msg)
-        else:
-            sys.stderr.write("{0}\n".format(msg))
+        sys.stderr.write("{0}\n".format(msg))
     
     def __printInfo(self, msg):
-        if self.isLogging:
+        if self.logger is not None:
             self.logger.info(msg)
-        else:
-            sys.stdout.write("{0}\n".format(msg))
+        sys.stdout.write("{0}\n".format(msg))
 
     def __printWarning(self, msg):
-        if self.isLogging:
+        if self.logger is not None:
             self.logger.warning(msg)
-        else:
-            sys.stderr.write("{0}\n".format(msg))
+        sys.stderr.write("{0}\n".format(msg))
 
     def __printDebug(self, msg):
-        if self.isLogging:
+        if self.logger is not None:
             self.logger.debug(msg)
-        else:
-            sys.stdout.write("{0}\n".format(msg))
+        sys.stdout.write("{0}\n".format(msg))
 
-    def __setupDaemon(self):
+    def __setupLogging(self):
         """
-        Set up logging first
+        Setup logfile and formatting
         """
         try:
-            self.logger = logging.getLogger("lugbot")
             hdlr = logging.FileHandler(self.logpath)
             formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
             hdlr.setFormatter(formatter)
+            self.logger = logging.getLogger("lugbot")
             self.logger.addHandler(hdlr)
             self.logger.setLevel(logging.DEBUG)
-            self.isLogging = True
         except IOError as e:
             self.__printError("Unable to set up logging. {0}".format(e.strerror))
             sys.exit(1)
         self.__printDebug("Set up logging")
 
+    def __sendBackground(self):
         """
         Send to background with double-fork
         """
@@ -81,22 +76,25 @@ class Daemon():
             self.__printError("Unable to fork into background")
             sys.exit(1)
         self.__printDebug("Forked into background")
-
+        
+    def __redirectIO(self):
         """
-        Redirect stdin, stdout, and stderr to /dev/null
+        Redirect IO to /dev/null
         """
         try:
             sys.stdout.flush()
             sys.stderr.flush()
-            devnull = open(os.devnull, 'rw')
-            sys.stdin = devnull
-            sys.stdout = devnull
-            sys.stderr = devnull
+            devnullw = open(os.devnull, 'w')
+            devnullr = open(os.devnull, 'r')
+            sys.stdin = devnullr
+            sys.stdout = devnullw
+            sys.stderr = devnullw
         except IOError as e:
-            self.__printError("Unable to redirect standard channels. {0}".format(e.strerror))
+            self.__printError("Unable to redirect IO. {0}".format(e.strerror))
             sys.exit(1)
-        self.__printDebug("Redirected stdin, stdout, and stderr")
+        self.__printDebug("Redirected IO to /dev/null")
 
+    def __writepid(self):        
         """
         Writing pidfile
         """
@@ -115,10 +113,12 @@ class Daemon():
             sys.exit(1)
 
         if self.isDaemon:
-            self.__setupDaemon()
-        self.__printDebug("Done daemonizing")
+            self.__setupLogging()
+            self.__sendBackground()
+            self.__redirectIO()
+            self.__writepid()
+
         self.__printInfo("Starting bot...")
-        
         self.bot.start()
         self.__printWarning("Bot has exited on its own")
         self.__clean()
@@ -138,6 +138,13 @@ class Daemon():
             return False
         return os.path.exists("/proc/{0}".format(pid))
 
+
+    def stop(self):
+        self.__printInfo("Stopping daemon...")
+        self.bot.disconnect("Farewell comrades!")
+        self.__printDebug("Disconnected bot");
+        self.__clean()
+
     def __clean(self):
         if self.isDaemon:
             try:
@@ -147,14 +154,12 @@ class Daemon():
                 self.__printWarning("Problem encountered deleting pidfile. {0}".format(e.strerror))
 
     def sigterm_handler(self, signum, frame):
-        self.__printInfo("Stopping daemon...")
-        self.bot.disconnect("Farewell comrades!")
-        self.__printDebug("Disconnected bot")
-        self.__clean()
+        self.stop()
         sys.exit(0)
 
     def sighup_handler(self, signum, frame):
-        pass
+        self.stop()
+        self.start()
         
 def main():
     usage = "Usage: %prog [options] <server> <channel> <nickname>"
