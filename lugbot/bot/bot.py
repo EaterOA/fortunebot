@@ -29,7 +29,6 @@ The known commands are:
 """
 
 
-from optparse import OptionParser
 import irc.bot
 from lugbot.scripts import *
 
@@ -37,9 +36,22 @@ class LugBot(irc.bot.SingleServerIRCBot):
     def __init__(self, server, port, channel, nickname):
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
         self.channel = channel
+        self.tryReconnect = True
+
+    def start(self):
+        self.tryReconnect = True
+        self._connect()
+        if not self.connection.is_connected():
+            raise IOError()
+        self.ircobj.process_forever()
 
     def disconnect(self, msg=""):
+        self.tryReconnect = False
         self.connection.disconnect(msg)
+
+    def on_disconnect(self, c, e):
+        if self.tryReconnect:
+            self.connection.execute_delayed(30, self.connect.reconnect())
 
     def on_nicknameinuse(self, c, e):
         c.nick(c.get_nickname() + "_")

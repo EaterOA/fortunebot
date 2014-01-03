@@ -1,12 +1,10 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 """
 """
 
-
-from optparse import OptionParser
+from argparse import ArgumentParser
 from lugbot.bot.bot import LugBot
 import os, sys, signal, logging
 
@@ -119,8 +117,11 @@ class Daemon():
             self.__writepid()
 
         self.__printInfo("Starting bot...")
-        self.bot.start()
-        self.__printWarning("Bot has exited on its own")
+        try:
+            self.bot.start()
+            self.__printWarning("Bot has exited on its own")
+        except IOError:
+            self.__printError("Unable to connect to server")
         self.__clean()
 
     def getpid(self):
@@ -162,16 +163,16 @@ class Daemon():
         self.start()
         
 def main():
-    usage = "Usage: %prog [options] <server> <channel> <nickname>"
-    parser = OptionParser(usage)
-    parser.add_option("-p", action="store", type="int", dest="port", default=6667, help="specify port, default 6667")
-    parser.add_option("--daemon", action="store_true", dest="daemon", default=False, help="run lugbot as a daemon")
-    parser.add_option("--pid-file", action="store", type="string", dest="piddir", default="/var/run/lugbot/", help="specify directory for pid file")
-    parser.add_option("--log-file", action="store", type="string", dest="logdir", default="/var/log/lugbot/", help="specify directory for log file")
-    options, args = parser.parse_args()
-    if len(args) < 3:
-        parser.error("You must specify server, channel, and nickname")
-    daemon = Daemon(args[0], options.port, args[1], args[2], options.daemon, options.piddir, options.logdir)
+    parser = ArgumentParser()
+    parser.add_argument("server")
+    parser.add_argument("channel")
+    parser.add_argument("nickname")
+    parser.add_argument("-p", "--port", type=int, dest="port", default=6667, help="specify port, default 6667")
+    parser.add_argument("--daemon", dest="daemon", default=False, help="run lugbot as a daemon")
+    parser.add_argument("--pid-file", dest="piddir", default="/var/run/lugbot/", help="specify directory for pid file")
+    parser.add_argument("--log-file", dest="logdir", default="/var/log/lugbot/", help="specify directory for log file")
+    args = parser.parse_args()
+    daemon = Daemon(args.server, args.port, args.channel, args.nickname, args.daemon, args.piddir, args.logdir)
     daemon.start()
 
 if __name__ == "__main__":
