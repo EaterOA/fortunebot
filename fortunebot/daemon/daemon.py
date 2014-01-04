@@ -5,20 +5,23 @@
 """
 
 from argparse import ArgumentParser
-from lugbot.bot.bot import LugBot
+from fortunebot.bot.bot import FortuneBot
 import os, sys, signal, logging
 
 
 class Daemon():
-    def __init__(self, server, port, channel, nickname, isDaemon=False, piddir="/tmp/", logdir="/tmp/"):
+    def __init__(self, server, port, channel, nickname, isDaemon=False, pidpath="/tmp/fortunebot.pid", logpath="/tmp/fortunebot.log"):
         self.isDaemon = isDaemon
-        self.pidpath = "{0}/{1}".format(piddir, "lugbot.pid")
-        self.logpath = "{0}/{1}".format(logdir, "lugbot.log")
+        if self.isDaemon and (not pidpath or not logpath):
+            _printError("pidfile and logfile must be specified")
+            sys.exit(1)
+        self.pidpath = pidpath 
+        self.logpath = logpath 
         self.logger = None
         signal.signal(signal.SIGTERM, self.sigterm_handler)
         signal.signal(signal.SIGINT, self.sigterm_handler)
         signal.signal(signal.SIGHUP, self.sighup_handler)
-        self.bot = LugBot(server, port, channel, nickname)
+        self.bot = FortuneBot(server, port, channel, nickname)
 
     def __printError(self, msg):
         if self.logger is not None:
@@ -48,11 +51,11 @@ class Daemon():
             hdlr = logging.FileHandler(self.logpath)
             formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
             hdlr.setFormatter(formatter)
-            self.logger = logging.getLogger("lugbot")
+            self.logger = logging.getLogger("fortunebot")
             self.logger.addHandler(hdlr)
             self.logger.setLevel(logging.DEBUG)
         except IOError as e:
-            self.__printError("Unable to set up logging. {0}".format(e.strerror))
+            self.__printError("Unable to set up logging at {0}. {1}".format(self.logpath, e.strerror))
             sys.exit(1)
         self.__printDebug("Set up logging")
 
@@ -70,8 +73,8 @@ class Daemon():
             pid = os.fork()
             if pid:
                 sys.exit(0)
-        except OSError:
-            self.__printError("Unable to fork into background")
+        except OSError as e:
+            self.__printError("Unable to fork into background. {0}".format(e.strerror))
             sys.exit(1)
         self.__printDebug("Forked into background")
         
@@ -101,7 +104,7 @@ class Daemon():
             pidfile.write(str(os.getpid()))
             pidfile.close()
         except IOError as e:
-            self.__printError("Unable to write pidfile. {0}".format(e.strerror))
+            self.__printError("Unable to write pidfile at {0}. {1}".format(self.pidpath, e.strerror))
             sys.exit(1)
         self.__printDebug("Wrote pidfile")
 
@@ -168,11 +171,11 @@ def main():
     parser.add_argument("channel")
     parser.add_argument("nickname")
     parser.add_argument("-p", "--port", type=int, dest="port", default=6667, help="specify port, default 6667")
-    parser.add_argument("--daemon", dest="daemon", default=False, help="run lugbot as a daemon")
-    parser.add_argument("--pid-file", dest="piddir", default="/var/run/lugbot/", help="specify directory for pid file")
-    parser.add_argument("--log-file", dest="logdir", default="/var/log/lugbot/", help="specify directory for log file")
+    parser.add_argument("--daemon", dest="daemon", action="store_true", default=False, help="run fortunebot as a daemon")
+    parser.add_argument("--pid-file", dest="pidpath", default="/var/run/fortunebot/fortunebot.pid", help="specify path for pid file")
+    parser.add_argument("--log-file", dest="logpath", default="/var/log/fortunebot/fortunebot.log", help="specify path for log file")
     args = parser.parse_args()
-    daemon = Daemon(args.server, args.port, args.channel, args.nickname, args.daemon, args.piddir, args.logdir)
+    daemon = Daemon(args.server, args.port, args.channel, args.nickname, args.daemon, args.pidpath, args.logpath)
     daemon.start()
 
 if __name__ == "__main__":

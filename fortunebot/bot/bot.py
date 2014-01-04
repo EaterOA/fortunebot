@@ -3,15 +3,9 @@
 
 
 """
-Very simple skeleton lugbot based off of irclib's testbot
-
-Run using:
-python lugbot.py <server[:port]> <channel> <nickname>
+Very simple bot module based on irclib's testbot
 
 The known commands are:
-
-    !die
-    --  Commit roboticide
 
     !insult
     --  Prints a shakespearean insult
@@ -30,9 +24,9 @@ The known commands are:
 
 
 import irc.bot
-from lugbot.scripts import *
+from fortunebot.scripts import *
 
-class LugBot(irc.bot.SingleServerIRCBot):
+class FortuneBot(irc.bot.SingleServerIRCBot):
     def __init__(self, server, port, channel, nickname):
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
         self.channel = channel
@@ -51,7 +45,7 @@ class LugBot(irc.bot.SingleServerIRCBot):
 
     def on_disconnect(self, c, e):
         if self.tryReconnect:
-            self.connection.execute_delayed(30, self.connect.reconnect())
+            self.connection.execute_delayed(30, self.connection.reconnect)
 
     def on_nicknameinuse(self, c, e):
         c.nick(c.get_nickname() + "_")
@@ -71,8 +65,6 @@ class LugBot(irc.bot.SingleServerIRCBot):
         nick = e.source.nick
         c = self.connection
 
-        if cmd == "!die":
-            self.die()
         elif cmd == "!insult":
             msg = insult.getInsult()
             c.privmsg(self.channel, msg)
