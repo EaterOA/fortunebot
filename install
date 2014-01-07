@@ -1,0 +1,30 @@
+#! /bin/bash
+NAME=fortunebot
+PIDDIR=/var/run/$NAME
+LOGDIR=/var/log/$NAME
+
+# Check if the fortunebot package is installed
+python -c "import $NAME" &>/dev/null
+if [ $? == 1 ]; then
+    python setup.py install
+fi
+
+# Set up pidfile and logfile directories
+id -u "$NAME" &>/dev/null
+if [ $? != 0 ]; then
+    adduser --quiet --system --group --home "/var/lib/$NAME" --disabled-login --shell /bin/false $NAME
+fi
+if [ ! -d $PIDDIR ]; then
+    mkdir -p $PIDDIR
+fi
+if [ ! -d $LOGDIR ]; then
+    mkdir -p $LOGDIR
+fi
+chown $NAME:$NAME $PIDDIR
+chown $NAME:$NAME $LOGDIR
+
+cp init/$NAME /etc/init.d/$NAME
+cp $NAME/daemon/daemon.py /usr/local/bin/$NAME
+chmod 755 /etc/init.d/$NAME
+chmod 755 /usr/local/bin/$NAME
+

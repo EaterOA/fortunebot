@@ -165,6 +165,8 @@ class Daemon():
         self.stop()
         self.start()
         
+from fortunebot.scripts import fortune
+
 def main():
     parser = ArgumentParser()
     parser.add_argument("server")

@@ -65,7 +65,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         nick = e.source.nick
         c = self.connection
 
-        elif cmd == "!insult":
+        if cmd == "!insult":
             msg = insult.getInsult()
             c.privmsg(self.channel, msg)
         elif cmd == "!w":
