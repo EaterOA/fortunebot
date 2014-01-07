@@ -4,7 +4,7 @@ PIDDIR=/var/run/$NAME
 LOGDIR=/var/log/$NAME
 
 # Check if the fortunebot package is installed
-python -c "import $NAME" &>/dev/null
+python -Ec "import os; os.chdir('/'); import $NAME" &>/dev/null
 if [ $? == 1 ]; then
     python setup.py install
 fi
