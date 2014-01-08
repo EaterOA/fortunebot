@@ -6,7 +6,7 @@
 
 from argparse import ArgumentParser
 from fortunebot.bot.bot import FortuneBot
-import os, sys, signal, logging
+import os, sys, signal, logging, resource
 
 
 class Daemon():
@@ -14,7 +14,7 @@ class Daemon():
         self.isDaemon = isDaemon
         if self.isDaemon and (not pidpath or not logpath):
             _printError("pidfile and logfile must be specified")
-            sys.exit(1)
+            os._exit(1)
         self.pidpath = pidpath 
         self.logpath = logpath 
         self.logger = None
@@ -56,7 +56,7 @@ class Daemon():
             self.logger.setLevel(logging.DEBUG)
         except IOError as e:
             self.__printError("Unable to set up logging at {0}. {1}".format(self.logpath, e.strerror))
-            sys.exit(1)
+            os._exit(1)
         self.__printDebug("Set up logging")
 
     def __sendBackground(self):
@@ -66,16 +66,16 @@ class Daemon():
         try:
             pid = os.fork()
             if pid:
-                sys.exit(0)
-            os.chdir("/")
+                os._exit(0)
             os.setsid()
-            os.umask(2)
             pid = os.fork()
             if pid:
-                sys.exit(0)
+                os._exit(0)
+            os.chdir("/")
+            os.umask(0)
         except OSError as e:
             self.__printError("Unable to fork into background. {0}".format(e.strerror))
-            sys.exit(1)
+            os._exit(1)
         self.__printDebug("Forked into background")
         
     def __redirectIO(self):
@@ -83,16 +83,27 @@ class Daemon():
         Redirect IO to /dev/null
         """
         try:
-            sys.stdout.flush()
-            sys.stderr.flush()
-            devnullw = open(os.devnull, 'w')
-            devnullr = open(os.devnull, 'r')
-            sys.stdin = devnullr
-            sys.stdout = devnullw
-            sys.stderr = devnullw
+            """
+            Close all open file descriptors, including standard IO
+            See code.activestate.com/recipes/278731/
+            """
+            maxfd = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
+            if (maxfd == resource.RLIM_INFINITY):
+                maxfd = 1024
+            for fd in reversed(range(maxfd)):
+                try:
+                    os.close(fd)
+                except OSError:
+                    pass
+            """
+            Open /dev/null as stdin, dup the pipe to stdout and stderr
+            """
+            open(os.devnull, "r")
+            open(os.devnull, "w")
+            open(os.devnull, "w")
         except IOError as e:
             self.__printError("Unable to redirect IO. {0}".format(e.strerror))
-            sys.exit(1)
+            os._exit(1)
         self.__printDebug("Redirected IO to /dev/null")
 
     def __writepid(self):        
@@ -105,18 +116,18 @@ class Daemon():
             pidfile.close()
         except IOError as e:
             self.__printError("Unable to write pidfile at {0}. {1}".format(self.pidpath, e.strerror))
-            sys.exit(1)
+            os._exit(1)
         self.__printDebug("Wrote pidfile")
 
     def start(self):
         if self.status():
             self.__printError("Bot already running!")
-            sys.exit(1)
+            os._exit(1)
 
         if self.isDaemon:
-            self.__setupLogging()
             self.__sendBackground()
             self.__redirectIO()
+            self.__setupLogging()
             self.__writepid()
 
         self.__printInfo("Starting bot...")
@@ -159,7 +170,7 @@ class Daemon():
 
     def sigterm_handler(self, signum, frame):
         self.stop()
-        sys.exit(0)
+        os._exit(0)
 
     def sighup_handler(self, signum, frame):
         self.stop()
