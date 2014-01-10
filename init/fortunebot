@@ -13,7 +13,7 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin:/usr/games
 DESC="irc bot daemon"
 NAME=fortunebot
-DAEMON=/usr/local/bin/$NAME
+DAEMON=/opt/$NAME/bin/$NAME
 DAEMON_ARGS="irc.gimp.net #radtest random1111 --daemon"
 PIDDIR=/var/run/$NAME
 PIDFILE=$PIDDIR/$NAME.pid

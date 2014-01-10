@@ -1,5 +1,6 @@
 #! /bin/bash
 NAME=fortunebot
+HOMEDIR=/opt/$NAME
 PIDDIR=/var/run/$NAME
 LOGDIR=/var/log/$NAME
 
@@ -12,7 +13,7 @@ fi
 # Set up pidfile and logfile directories
 id -u "$NAME" &>/dev/null
 if [ $? != 0 ]; then
-    adduser --quiet --system --group --home "/var/lib/$NAME" --disabled-login --shell /bin/false $NAME
+    adduser --quiet --system --group --home $HOMEDIR --disabled-login --shell /bin/false $NAME
 fi
 if [ ! -d $PIDDIR ]; then
     mkdir -p $PIDDIR
@@ -23,10 +24,18 @@ fi
 chown $NAME:$NAME $PIDDIR
 chown $NAME:$NAME $LOGDIR
 
-# Copy scripts and binary
+# Copy scripts
 cp init/$NAME /etc/init.d/$NAME
-cp $NAME/daemon/daemon.py /usr/local/bin/$NAME
 chmod 755 /etc/init.d/$NAME
-chmod 755 /usr/local/bin/$NAME
-update-rc.d fortunebot defaults 99
+if [ "$1" == "boot" ]; then
+    update-rc.d fortunebot defaults 99
+else
+    update-rc.d fortunebot stop 99 0 1 2 3 4 5 6 .
+fi
+
+# Set up home
+mkdir -p $HOMEDIR/bin $HOMEDIR/conf $HOMEDIR/data
+cp $NAME/daemon/daemon.py $HOMEDIR/bin/$NAME
+chmod 755 $HOMEDIR/bin/$NAME
+chown -R $NAME:$NAME $HOMEDIR
 

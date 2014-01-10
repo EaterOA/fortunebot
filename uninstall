@@ -1,5 +1,6 @@
 #! /bin/bash
 NAME=fortunebot
+HOMEDIR=/opt/$NAME
 PIDDIR=/var/run/$NAME
 LOGDIR=/var/log/$NAME
 
@@ -11,16 +12,13 @@ if [ -d $LOGDIR ]; then
     rm -r $LOGDIR
 fi
 
-# Remove init script and binary
+# Remove init script
 if [ -f /etc/init.d/$NAME ]; then
     rm /etc/init.d/$NAME
     update-rc.d fortunebot remove
 fi
-if [ -f /usr/local/bin/$NAME ]; then
-    rm /usr/local/bin/$NAME
-fi
 
-# Remove daemon user
+# Remove daemon user and everything in its home
 id -u "$NAME" &>/dev/null
 if [ $? == 0 ]; then
     deluser --quiet --system --remove-home $NAME
