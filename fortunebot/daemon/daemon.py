@@ -133,10 +133,11 @@ class Daemon():
         self.__printInfo("Starting bot...")
         try:
             self.bot.start()
-            self.__printWarning("Bot has exited on its own")
-        except IOError:
-            self.__printError("Unable to connect to server")
-        self.__clean()
+        except Exception as e:
+            self.__printError("Unable to connect to network")
+        finally:
+            self.__clean()
+            os.__exit(1)
 
     def getpid(self):
         try:
@@ -173,8 +174,7 @@ class Daemon():
         os._exit(0)
 
     def sighup_handler(self, signum, frame):
-        self.stop()
-        self.start()
+        pass
         
 from fortunebot.scripts import fortune
 

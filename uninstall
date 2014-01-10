@@ -14,6 +14,7 @@ fi
 # Remove init script and binary
 if [ -f /etc/init.d/$NAME ]; then
     rm /etc/init.d/$NAME
+    update-rc.d fortunebot remove
 fi
 if [ -f /usr/local/bin/$NAME ]; then
     rm /usr/local/bin/$NAME

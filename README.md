@@ -10,5 +10,9 @@ Accepts these commands:
 
 Very useful stuff, especially the insult.
 
+# Dependencies #
+
 The bot uses Python irclib. Find that at http://python-irclib.sourceforge.net/
+
+The init script is designed for SysV systems such as Debian.
 

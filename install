@@ -23,8 +23,10 @@ fi
 chown $NAME:$NAME $PIDDIR
 chown $NAME:$NAME $LOGDIR
 
+# Copy scripts and binary
 cp init/$NAME /etc/init.d/$NAME
 cp $NAME/daemon/daemon.py /usr/local/bin/$NAME
 chmod 755 /etc/init.d/$NAME
 chmod 755 /usr/local/bin/$NAME
+update-rc.d fortunebot defaults 99
 
