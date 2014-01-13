@@ -19,7 +19,7 @@ class Daemon():
         signal.signal(signal.SIGINT, self.sigterm_handler)
         signal.signal(signal.SIGHUP, self.sighup_handler)
         signal.siginterrupt(signal.SIGHUP, False)
-        self.bot = FortuneBot(confpath)
+        self.bot = FortuneBot([confpath, "fortunebot.conf"])
 
     def _printError(self, msg):
         if self.logger is not None:

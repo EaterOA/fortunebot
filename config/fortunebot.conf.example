@@ -4,9 +4,12 @@ port = 6667
 channel = #test
 nickname = fortunebot
 realname = fortunebot
+reconnect = yes
+reconnect_interval = 30
 
 [Scripts]
 enable_weather = yes
 enable_insult = yes
 enable_8ball = yes
 enable_fortune = yes
+weather_key = YOURKEYHERE

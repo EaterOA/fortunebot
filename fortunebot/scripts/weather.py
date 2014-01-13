@@ -5,13 +5,13 @@ import urllib
 import json
 import sys
 
-def getWeather(zipcode):
+def getWeather(zipcode, apikey="YOURKEYHERE"):
     res = ""
     if len(zipcode) != 5 or not zipcode.isdigit():
         res = "ERROR: Zip code is not in 5-digit format!"
     else:
         try:
-            page = urllib.urlopen("http://api.worldweatheronline.com/free/v1/weather.ashx?q={0}&format=json&fx=no&includelocation=yes&key=YOURKEYHERE".format(zipcode)).read()
+            page = urllib.urlopen("http://api.worldweatheronline.com/free/v1/weather.ashx?q={0}&format=json&fx=no&includelocation=yes&key={1}".format(zipcode, apikey)).read()
             wdata = json.loads(page)["data"]
             if "error" in wdata:
                 res = "ERROR: No data found for {0}!".format(zipcode)

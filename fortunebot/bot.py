@@ -27,21 +27,23 @@ from ConfigParser import RawConfigParser
 from fortunebot.scripts import *
 
 class FortuneBot(irc.bot.SingleServerIRCBot):
-    def __init__(self, confpath):
+    def __init__(self, confpaths):
         super(FortuneBot, self).__init__([], "", "")
-        self.defaultConfig = self.__getDefaultConfig()
+        self.defaultConfig = self._getDefaultConfig()
         self.config = {}
-        self.loadConfig(confpath)
+        self.loadConfig(confpaths)
 
-    def __getDefaultConfig(self):
+    def _getDefaultConfig(self):
         scripts = ["enable_weather", "enable_insult", "enable_fortune", "enable_8ball"]
-        defaultConfig = dict.fromkeys(scripts, "true")
-        defaultConfig['server'] = ""
-        defaultConfig['port'] = 6667
-        defaultConfig['channel'] = ""
-        defaultConfig['nickname'] = "fortunebot"
-        defaultConfig['realname'] = "fortunebot"
-        defaultConfig['reconnect_interval'] = 30
+        defaultConfig = dict.fromkeys(scripts, "yes")
+        defaultConfig["weather_key"] = ""
+        defaultConfig["server"] = ""
+        defaultConfig["port"] = 6667
+        defaultConfig["channel"] = ""
+        defaultConfig["nickname"] = "fortunebot"
+        defaultConfig["realname"] = "fortunebot"
+        defaultConfig["reconnect"] = "yes"
+        defaultConfig["reconnect_interval"] = 30
         return defaultConfig
 
     def loadConfig(self, confpaths):
@@ -52,32 +54,36 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         for s in sections:
             if not parser.has_section(s):
                 parser.add_section(s)
-        self.config['server'] = parser.get('Connect', 'server')
-        self.config['port'] = parser.getint('Connect', 'port')
-        self.config['channel'] = parser.get('Connect', 'channel')
-        self.config['nickname'] = parser.get('Connect', 'nickname')
-        self.config['realname'] = parser.get('Connect', 'realname')
-        self.config['reconnect_interval'] = parser.getint('Connect', 'reconnect_interval')
+        self.config["server"] = parser.get("Connect", "server")
+        self.config["port"] = parser.getint("Connect", "port")
+        self.config["channel"] = parser.get("Connect", "channel")
+        self.config["nickname"] = parser.get("Connect", "nickname")
+        self.config["realname"] = parser.get("Connect", "realname")
+        self.config["reconnect"] = parser.getboolean("Connect", "reconnect")
+        self.config["reconnect_interval"] = parser.getint("Connect", "reconnect_interval")
+        if self.config["reconnect_interval"] < 0:
+            self.config["reconnect_interval"] = 0
         for s in ["enable_weather", "enable_insult",
                   "enable_fortune", "enable_8ball"]:
             self.config[s] = parser.getboolean("Scripts", s)
+        self.config["weather_key"] = parser.get("Scripts", "weather_key")
 
     def start(self):
-        if not self.config['server'] or not self.config['channel']:
+        if not self.config["server"] or not self.config["channel"]:
             raise IOError("The server and channel must be specified!")
         try:
-            self.connect(self.config['server'], self.config['port'], self.config['nickname'], ircname=self.config['realname'])
+            self.connect(self.config["server"], self.config["port"], self.config["nickname"], ircname=self.config["realname"])
         except irc.client.ServerConnectionError:
             raise IOError("Unable to connect to server")
         self.ircobj.process_forever()
 
     def disconnect(self, msg=""):
-        self.tryReconnect = False
+        self.config["reconnect"] = False
         self.connection.disconnect(msg)
 
     def on_disconnect(self, c, e):
-        if self.config['reconnect_interval'] > 0:
-            self.connection.execute_delayed(self.config['reconnect_interval'], self.connection.reconnect)
+        if self.config["reconnect"]:
+            self.connection.execute_delayed(self.config["reconnect_interval"], self.connection.reconnect)
 
     def on_nicknameinuse(self, c, e):
         c.nick(c.get_nickname() + "_")
@@ -105,7 +111,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             zipcode = "90024"
             if args:
                 zipcode = args[0]
-            msg = weather.getWeather(zipcode)
+            msg = weather.getWeather(zipcode, self.config["weather_key"])
             c.privmsg(channel, msg)
         if self.config["enable_fortune"] and cmd == "!fortune":
             category = None
