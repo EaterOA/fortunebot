@@ -13,21 +13,20 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin:/usr/games
 DESC="irc bot daemon"
 NAME=fortunebot
-DAEMON=/opt/$NAME/bin/$NAME
-DAEMON_ARGS="irc.gimp.net #radtest random1111 --daemon"
 PIDDIR=/var/run/$NAME
 PIDFILE=$PIDDIR/$NAME.pid
 LOGDIR=/var/log/$NAME
-LOGFILE=$LOGDIR/$NAME.pid
+LOGFILE=$LOGDIR/$NAME.log
+CONFDIR=/opt/$NAME/config
+CONFFILE=$CONFDIR/$NAME.conf
 SCRIPTNAME=/etc/init.d/$NAME
+DAEMON=/opt/$NAME/bin/$NAME
+DAEMON_ARGS="--daemon --pid-file $PIDFILE --log-file $LOGFILE --conf-file $CONFFILE"
 USER=fortunebot
 GROUP=fortunebot
 
 # Exit if the package is not installed
 [ -x "$DAEMON" ] || exit 0
-
-# Read configuration variable file if it is present
-[ -r /etc/default/$NAME ] && . /etc/default/$NAME
 
 # Define LSB log_* functions.
 # Depend on lsb-base (>= 3.2-14) to ensure that this file is present

@@ -24,6 +24,9 @@ if [ $? == 0 ]; then
     deluser --quiet --system --remove-home $NAME
     deluser --quiet --system --group $NAME
 fi
+if [ -d /opt/$NAME ]; then
+    rm -r /opt/$NAME
+fi
 
 # Uninstall the fortunebot package
 python -Ec "import os; os.chdir('/'); import $NAME" &>/dev/null

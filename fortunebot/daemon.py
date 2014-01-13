@@ -1,49 +1,47 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
-"""
-
 from argparse import ArgumentParser
-from fortunebot.bot.bot import FortuneBot
+from fortunebot.bot import FortuneBot
 import os, sys, signal, logging, resource
 
-
 class Daemon():
-    def __init__(self, server, port, channel, nickname, isDaemon=False, pidpath="/tmp/fortunebot.pid", logpath="/tmp/fortunebot.log"):
+    def __init__(self, isDaemon, pidpath, logpath, confpath):
         self.isDaemon = isDaemon
-        if self.isDaemon and (not pidpath or not logpath):
-            _printError("pidfile and logfile must be specified")
+        if self.isDaemon and not (pidpath and logpath and confpath):
+            _printError("pidfile, logfile, and confpath must be specified")
             os._exit(1)
-        self.pidpath = pidpath 
-        self.logpath = logpath 
+        self.pidpath = pidpath
+        self.logpath = logpath
+        self.confpath = confpath
         self.logger = None
         signal.signal(signal.SIGTERM, self.sigterm_handler)
         signal.signal(signal.SIGINT, self.sigterm_handler)
         signal.signal(signal.SIGHUP, self.sighup_handler)
-        self.bot = FortuneBot(server, port, channel, nickname)
+        signal.siginterrupt(signal.SIGHUP, False)
+        self.bot = FortuneBot(confpath)
 
-    def __printError(self, msg):
+    def _printError(self, msg):
         if self.logger is not None:
             self.logger.error(msg)
         sys.stderr.write("{0}\n".format(msg))
     
-    def __printInfo(self, msg):
+    def _printInfo(self, msg):
         if self.logger is not None:
             self.logger.info(msg)
         sys.stdout.write("{0}\n".format(msg))
 
-    def __printWarning(self, msg):
+    def _printWarning(self, msg):
         if self.logger is not None:
             self.logger.warning(msg)
         sys.stderr.write("{0}\n".format(msg))
 
-    def __printDebug(self, msg):
+    def _printDebug(self, msg):
         if self.logger is not None:
             self.logger.debug(msg)
         sys.stdout.write("{0}\n".format(msg))
 
-    def __setupLogging(self):
+    def _setupLogging(self):
         """
         Setup logfile and formatting
         """
@@ -55,11 +53,11 @@ class Daemon():
             self.logger.addHandler(hdlr)
             self.logger.setLevel(logging.DEBUG)
         except IOError as e:
-            self.__printError("Unable to set up logging at {0}. {1}".format(self.logpath, e.strerror))
+            self._printError("Unable to set up logging at {0}. {1}".format(self.logpath, e.strerror))
             os._exit(1)
-        self.__printDebug("Set up logging")
+        self._printDebug("Set up logging")
 
-    def __sendBackground(self):
+    def _sendBackground(self):
         """
         Send to background with double-fork
         """
@@ -74,11 +72,11 @@ class Daemon():
             os.chdir("/")
             os.umask(0)
         except OSError as e:
-            self.__printError("Unable to fork into background. {0}".format(e.strerror))
+            self._printError("Unable to fork into background. {0}".format(e.strerror))
             os._exit(1)
-        self.__printDebug("Forked into background")
+        self._printDebug("Forked into background")
         
-    def __redirectIO(self):
+    def _redirectIO(self):
         """
         Redirect IO to /dev/null
         """
@@ -96,17 +94,17 @@ class Daemon():
                 except OSError:
                     pass
             """
-            Open /dev/null as stdin, dup the pipe to stdout and stderr
+            Open /dev/null as fd 0, 1, and 2
             """
             open(os.devnull, "r")
             open(os.devnull, "w")
             open(os.devnull, "w")
         except IOError as e:
-            self.__printError("Unable to redirect IO. {0}".format(e.strerror))
+            self._printError("Unable to redirect IO. {0}".format(e.strerror))
             os._exit(1)
-        self.__printDebug("Redirected IO to /dev/null")
+        self._printDebug("Redirected IO to /dev/null")
 
-    def __writepid(self):        
+    def _writepid(self):        
         """
         Writing pidfile
         """
@@ -115,29 +113,29 @@ class Daemon():
             pidfile.write(str(os.getpid()))
             pidfile.close()
         except IOError as e:
-            self.__printError("Unable to write pidfile at {0}. {1}".format(self.pidpath, e.strerror))
+            self._printError("Unable to write pidfile at {0}. {1}".format(self.pidpath, e.strerror))
             os._exit(1)
-        self.__printDebug("Wrote pidfile")
+        self._printDebug("Wrote pidfile")
 
     def start(self):
         if self.status():
-            self.__printError("Bot already running!")
+            self._printError("Bot already running!")
             os._exit(1)
 
         if self.isDaemon:
-            self.__sendBackground()
-            self.__redirectIO()
-            self.__setupLogging()
-            self.__writepid()
+            self._sendBackground()
+            self._redirectIO()
+            self._setupLogging()
+            self._writepid()
 
-        self.__printInfo("Starting bot...")
+        self._printInfo("Starting bot...")
         try:
             self.bot.start()
         except Exception as e:
-            self.__printError("Unable to connect to network")
+            self._printError(e)
         finally:
-            self.__clean()
-            os.__exit(1)
+            self._clean()
+            os._exit(1)
 
     def getpid(self):
         try:
@@ -156,39 +154,35 @@ class Daemon():
 
 
     def stop(self):
-        self.__printInfo("Stopping daemon...")
+        self._printInfo("Stopping daemon...")
         self.bot.disconnect("Farewell comrades!")
-        self.__printDebug("Disconnected bot");
-        self.__clean()
+        self._printDebug("Disconnected bot");
+        self._clean()
 
-    def __clean(self):
+    def _clean(self):
         if self.isDaemon:
             try:
                 if os.path.exists(self.pidpath):
                     os.remove(self.pidpath)
             except OSError as e:
-                self.__printWarning("Problem encountered deleting pidfile. {0}".format(e.strerror))
+                self._printWarning("Problem encountered deleting pidfile. {0}".format(e.strerror))
 
     def sigterm_handler(self, signum, frame):
         self.stop()
         os._exit(0)
 
     def sighup_handler(self, signum, frame):
+        #self.bot.loadConfig([self.confpath, "fortunebot.conf"])
         pass
         
-from fortunebot.scripts import fortune
-
 def main():
     parser = ArgumentParser()
-    parser.add_argument("server")
-    parser.add_argument("channel")
-    parser.add_argument("nickname")
-    parser.add_argument("-p", "--port", type=int, dest="port", default=6667, help="specify port, default 6667")
     parser.add_argument("--daemon", dest="daemon", action="store_true", default=False, help="run fortunebot as a daemon")
     parser.add_argument("--pid-file", dest="pidpath", default="/var/run/fortunebot/fortunebot.pid", help="specify path for pid file")
     parser.add_argument("--log-file", dest="logpath", default="/var/log/fortunebot/fortunebot.log", help="specify path for log file")
+    parser.add_argument("--conf-file", dest="confpath", default="/opt/fortunebot/config/fortunebot.conf", help="specify path for config file")
     args = parser.parse_args()
-    daemon = Daemon(args.server, args.port, args.channel, args.nickname, args.daemon, args.pidpath, args.logpath)
+    daemon = Daemon(args.daemon, args.pidpath, args.logpath, args.confpath)
     daemon.start()
 
 if __name__ == "__main__":

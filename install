@@ -34,8 +34,9 @@ else
 fi
 
 # Set up home
-mkdir -p $HOMEDIR/bin $HOMEDIR/conf $HOMEDIR/data
-cp $NAME/daemon/daemon.py $HOMEDIR/bin/$NAME
+mkdir -p $HOMEDIR/bin $HOMEDIR/config $HOMEDIR/data
+cp $NAME/daemon.py $HOMEDIR/bin/$NAME
+cp config/$NAME.conf.example $HOMEDIR/config/
 chmod 755 $HOMEDIR/bin/$NAME
 chown -R $NAME:$NAME $HOMEDIR
 
