@@ -172,8 +172,7 @@ class Daemon():
         os._exit(0)
 
     def sighup_handler(self, signum, frame):
-        #self.bot.loadConfig([self.confpath, "fortunebot.conf"])
-        pass
+        self.bot.loadConfig([self.confpath, "fortunebot.conf"])
         
 def main():
     parser = ArgumentParser()

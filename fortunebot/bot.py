@@ -22,6 +22,9 @@ The known commands are:
 
 """
 
+import select
+import time
+import errno
 import irc.bot
 from ConfigParser import RawConfigParser
 from fortunebot.scripts import *
@@ -75,7 +78,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             self.connect(self.config["server"], self.config["port"], self.config["nickname"], ircname=self.config["realname"])
         except irc.client.ServerConnectionError:
             raise IOError("Unable to connect to server")
-        self.ircobj.process_forever()
+        self._process_forever()
 
     def disconnect(self, msg=""):
         self.config["reconnect"] = False
@@ -123,3 +126,32 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             msg = magic8ball.get8Ball()
             c.privmsg(channel, msg)
 
+
+    def _process_forever(self, timeout=0.2):
+        """
+        A hack that duplicates the IRC object's process_forever, in order
+        to work around an unhandled InterruptedSystemCall exception on a
+        SIGHUP
+        https://bitbucket.org/jaraco/irc/issue/36/client-crashes-on-eintr
+        """
+        while 1:
+            self._process_once(timeout)
+
+    def _process_once(self, timeout=0):
+        """
+        IRC's process_once with the fix for InterruptedSystemCall
+        """
+        with self.ircobj.mutex:
+            sockets = [x.socket for x in self.ircobj.connections if x is not None]
+            sockets = [x for x in sockets if x is not None]
+            if sockets:
+                while 1:
+                    try:
+                        (i, o, e) = select.select(sockets, [], [], timeout)
+                        break
+                    except select.error as e:
+                        if e[0] != errno.EINTR: raise
+                self.ircobj.process_data(i)
+            else:
+                time.sleep(timeout)
+            self.ircobj.process_timeout()
