@@ -1,36 +1,24 @@
-#! /usr/bin/env python
+# -*- coding: utf-8 -*-
 
-import sys
-from random import choice
+import random
 
-def get8Ball(): 
-    roll = ["It is certain",
-            "It is decidedly so",
-            "Without a doubt",
-            "Yes definitely",
-            "You may rely on it",
-            "As I see it, yes",
-            "Most likely",
-            "Outlook good",
-            "Yes",
-            "Signs point to yes",
-            "Reply hazy try again",
-            "Ask again later",
-            "Better not tell you now",
-            "Cannot predict now",
-            "Concentrate and ask again",
-            "Don't count on it",
-            "My reply is no",
-            "My sources say no",
-            "Outlook not so good",
-            "Very doubtful"]
-    res = choice(roll)
-    return res
+class Magic8Ball():
 
-def main():
-    msg = get8Ball()
-    print msg
+    def __init__(self):
+        self.messages = ["It is certain", "It is decidedly so",
+                         "Without a doubt", "Yes definitely",
+                         "You may rely on it", "As I see it, yes",
+                         "Most likely", "Outlook good",
+                         "Yes", "Signs point to yes",
+                         "Reply hazy try again", "Ask again later",
+                         "Better not tell you now", "Cannot predict now",
+                         "Concentrate and ask again", "Don't count on it",
+                         "My reply is no", "My sources say no",
+                         "Outlook not so good", "Very doubtful"]
 
-if __name__ == "__main__":
-    main()
+    def on_pubmsg(self, nick, channel, text):
+        args = text.split()
+        if args[0] != "!8ball":
+            return
+        return random.choice(self.messages)
 

@@ -1,23 +1,26 @@
-#! /usr/bin/env python
+# -*- coding: utf-8 -*-
 
-import sys
 import urllib
 import re
 
-def getInsult(): 
-    insult = ""
-    try:
-        page = urllib.urlopen("http://www.pangloss.com/seidel/Shaker/index.html").read()
-        match = re.search("^.+?</font>$", page, re.M)
-        insult = match.group(0).split('<')[0]
-    except IOError:
-        insult = "ERROR: Unable to retrieve insult"
-    return insult
+class Insult():
 
-def main():
-    insult = getInsult()
-    print insult
+    def __init__(self):
+        pass
 
-if __name__ == "__main__":
-    main()
+    def on_pubmsg(self, nick, channel, text):
+        args = text.split()
+        if args[0] != "!insult":
+            return
+        return self.getInsult()
+
+    def getInsult(self): 
+        insult = ""
+        try:
+            page = urllib.urlopen("http://www.pangloss.com/seidel/Shaker/index.html").read()
+            match = re.search("^.+?</font>$", page, re.M)
+            insult = match.group(0).split('<')[0]
+        except IOError:
+            insult = "ERROR: Unable to retrieve insult"
+        return insult
 
