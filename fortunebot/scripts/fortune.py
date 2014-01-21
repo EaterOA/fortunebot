@@ -42,5 +42,5 @@ class Fortune():
         else:
             res = res.strip()
             res = re.sub(r"[ \t\r\n]+", " ", res)
-        return res
+        return res.decode("latin-1").encode("utf-8")
 

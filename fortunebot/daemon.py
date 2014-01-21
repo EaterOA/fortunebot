@@ -24,22 +24,22 @@ class Daemon():
     def _printError(self, msg):
         if self.logger is not None:
             self.logger.error(msg)
-        sys.stderr.write("{0}\n".format(msg))
+        sys.stderr.write("ERROR {0}\n".format(msg))
     
     def _printInfo(self, msg):
         if self.logger is not None:
             self.logger.info(msg)
-        sys.stdout.write("{0}\n".format(msg))
+        sys.stdout.write("INFO {0}\n".format(msg))
 
     def _printWarning(self, msg):
         if self.logger is not None:
             self.logger.warning(msg)
-        sys.stderr.write("{0}\n".format(msg))
+        sys.stderr.write("WARNING {0}\n".format(msg))
 
     def _printDebug(self, msg):
         if self.logger is not None:
             self.logger.debug(msg)
-        sys.stdout.write("{0}\n".format(msg))
+        sys.stdout.write("DEBUG {0}\n".format(msg))
 
     def _setupLogging(self):
         """
@@ -176,12 +176,12 @@ class Daemon():
         
 def main():
     parser = ArgumentParser()
-    parser.add_argument("--daemon", dest="daemon", action="store_true", default=False, help="run fortunebot as a daemon")
-    parser.add_argument("--pid-file", dest="pidpath", default="/var/run/fortunebot/fortunebot.pid", help="specify path for pid file")
-    parser.add_argument("--log-file", dest="logpath", default="/var/log/fortunebot/fortunebot.log", help="specify path for log file")
+    parser.add_argument("--daemonize", dest="daemonize", action="store_true", default=False, help="run fortunebot as a daemon")
+    parser.add_argument("--pid-file", dest="pidpath", default="/var/run/fortunebot/fortunebot.pid", help="specify path for pid file, if daemonize")
+    parser.add_argument("--log-file", dest="logpath", default="/var/log/fortunebot/fortunebot.log", help="specify path for log file, if daemonize")
     parser.add_argument("--conf-file", dest="confpath", default="/opt/fortunebot/config/fortunebot.conf", help="specify path for config file")
     args = parser.parse_args()
-    daemon = Daemon(args.daemon, args.pidpath, args.logpath, args.confpath)
+    daemon = Daemon(args.daemonize, args.pidpath, args.logpath, args.confpath)
     daemon.start()
 
 if __name__ == "__main__":

@@ -20,6 +20,9 @@ The known commands are:
     !8ball
     --  Prints a random magic 8-ball reply
 
+    If you call the bot's nickname, it will respond with a markov-chain-
+    generated response
+
 """
 
 import select

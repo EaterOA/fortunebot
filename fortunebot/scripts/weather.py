@@ -6,8 +6,11 @@ import json
 class Weather():
 
     def __init__(self, apikey):
-        #Sanitize, because I can
-        self.key = "".join([c for c in apikey.split()[0] if c.isalnum()])
+        if not apikey:
+            self.key = ""
+        else:
+            #Sanitize, because I can
+            self.key = "".join([c for c in apikey.split()[0] if c.isalnum()])
 
     def on_pubmsg(self, nick, channel, text):
         args = text.split()
