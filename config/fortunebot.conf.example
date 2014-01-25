@@ -13,6 +13,7 @@ enable_insult = yes
 enable_8ball = yes
 enable_fortune = yes
 enable_markov = yes
+enable_help = yes
 weather_key = YOURKEYHERE
 fortune_length = 100
 markov_data = 

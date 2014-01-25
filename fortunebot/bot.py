@@ -25,9 +25,7 @@ The known commands are:
 
 """
 
-import select
-import time
-import errno
+import select, time, errno
 import irc.bot
 from ConfigParser import RawConfigParser
 from fortunebot.scripts import *
@@ -35,27 +33,31 @@ from fortunebot.scripts import *
 class FortuneBot(irc.bot.SingleServerIRCBot):
     def __init__(self, confpaths):
         super(FortuneBot, self).__init__([], "", "")
-        self.defaultConfig = self._getDefaultConfig()
-        self.config = {}
-        self.scripts = {}
+        self._getDefaults()
         self.loadConfig(confpaths)
 
-    def _getDefaultConfig(self):
-        scripts = ["enable_weather", "enable_insult", "enable_fortune",
-                   "enable_8ball", "enable_markov"]
-        defaultConfig = dict.fromkeys(scripts, "yes")
-        defaultConfig["weather_key"] = ""
-        defaultConfig["markov_data"] = ""
-        defaultConfig["markov_listen"] = "yes"
-        defaultConfig["fortune_length"] = 100
-        defaultConfig["server"] = ""
-        defaultConfig["port"] = 6667
-        defaultConfig["channel"] = ""
-        defaultConfig["nickname"] = "fortunebot"
-        defaultConfig["realname"] = "fortunebot"
-        defaultConfig["reconnect"] = "yes"
-        defaultConfig["reconnect_interval"] = 30
-        return defaultConfig
+    def _getDefaults(self):
+        self.config = {}
+        self.scripts = {}
+        self.defaultConfig = {
+            "enable_weather": "yes",
+            "enable_insult": "yes",
+            "enable_fortune": "yes",
+            "enable_8ball": "yes",
+            "enable_markov": "yes",
+            "enable_help": "yes",
+            "weather_key": "",
+            "markov_data": "",
+            "markov_listen": "yes",
+            "fortune_length": 100,
+            "server": "",
+            "port": 6667,
+            "channel": "",
+            "nickname": "fortunebot",
+            "realname": "fortunebot",
+            "reconnect": "yes",
+            "reconnect_interval": 30
+        }
 
     def loadConfig(self, confpaths):
         # Override default values with anything in config file
@@ -65,20 +67,23 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         for s in sections:
             if not parser.has_section(s):
                 parser.add_section(s)
+        pdict = {
+            "server": parser.get("Connect", "server"),
+            "port": parser.getint("Connect", "port"),
+            "channel": parser.get("Connect", "channel"),
+            "nickname": parser.get("Connect", "nickname"),
+            "realname": parser.get("Connect", "realname"),
+            "reconnect": parser.getboolean("Connect", "reconnect"),
+            "reconnect_interval": parser.getint("Connect", "reconnect_interval"),
+            "weather_key": parser.get("Scripts", "weather_key"),
+            "fortune_length": parser.getint("Scripts", "fortune_length"),
+            "markov_data": parser.get("Scripts", "markov_data"),
+            "markov_listen": parser.getboolean("Scripts", "markov_listen"),
+        }
         c = self.config
-        c["server"] = parser.get("Connect", "server")
-        c["port"] = parser.getint("Connect", "port")
-        c["channel"] = parser.get("Connect", "channel")
-        c["nickname"] = parser.get("Connect", "nickname")
-        c["realname"] = parser.get("Connect", "realname")
-        c["reconnect"] = parser.getboolean("Connect", "reconnect")
-        c["reconnect_interval"] = parser.getint("Connect", "reconnect_interval")
+        c.update(pdict)
         if c["reconnect_interval"] < 0:
             c["reconnect_interval"] = 0
-        c["weather_key"] = parser.get("Scripts", "weather_key")
-        c["fortune_length"] = parser.getint("Scripts", "fortune_length")
-        c["markov_data"] = parser.get("Scripts", "markov_data")
-        c["markov_listen"] = parser.getboolean("Scripts", "markov_listen")
         #Load scripts with config
         self.scripts = {}
         if parser.getboolean("Scripts", "enable_insult"):
@@ -91,6 +96,8 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             self.scripts["8ball"] = magic8ball.Magic8Ball()
         if parser.getboolean("Scripts", "enable_markov"):
             self.scripts["markov"] = markov.Markov(c["markov_data"], c["markov_listen"], c["nickname"])
+        if parser.getboolean("Scripts", "enable_help"):
+            self.scripts["help"] = bothelp.BotHelp()
 
     def start(self):
         if not self.config["server"] or not self.config["channel"]:
