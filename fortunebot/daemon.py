@@ -4,6 +4,7 @@
 from argparse import ArgumentParser
 from fortunebot.bot import FortuneBot
 import os, sys, signal, logging, resource
+logger = logging.getLogger("fortunebot")
 
 class Daemon():
     def __init__(self, isDaemon, pidpath, logpath, confpath):
@@ -14,48 +15,26 @@ class Daemon():
         self.pidpath = pidpath
         self.logpath = logpath
         self.confpath = confpath
-        self.logger = None
         signal.signal(signal.SIGTERM, self.sigterm_handler)
         signal.signal(signal.SIGINT, self.sigterm_handler)
         signal.signal(signal.SIGHUP, self.sighup_handler)
         signal.siginterrupt(signal.SIGHUP, False)
-        self.bot = FortuneBot([confpath, "fortunebot.conf"])
-
-    def _printError(self, msg):
-        if self.logger is not None:
-            self.logger.error(msg)
-        sys.stderr.write("ERROR {0}\n".format(msg))
-    
-    def _printInfo(self, msg):
-        if self.logger is not None:
-            self.logger.info(msg)
-        sys.stdout.write("INFO {0}\n".format(msg))
-
-    def _printWarning(self, msg):
-        if self.logger is not None:
-            self.logger.warning(msg)
-        sys.stderr.write("WARNING {0}\n".format(msg))
-
-    def _printDebug(self, msg):
-        if self.logger is not None:
-            self.logger.debug(msg)
-        sys.stdout.write("DEBUG {0}\n".format(msg))
+        self.bot = FortuneBot([confpath, "fortunebot.conf", "/etc/fortunebot.conf"])
 
     def _setupLogging(self):
         """
         Setup logfile and formatting
         """
         try:
+            logger.handlers = []
             hdlr = logging.FileHandler(self.logpath)
-            formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
-            hdlr.setFormatter(formatter)
-            self.logger = logging.getLogger("fortunebot")
-            self.logger.addHandler(hdlr)
-            self.logger.setLevel(logging.DEBUG)
+            fmtr = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
+            hdlr.setFormatter(fmtr)
+            logger.addHandler(hdlr)
         except IOError as e:
-            self._printError("Unable to set up logging at {0}. {1}".format(self.logpath, e.strerror))
+            logger.error("Unable to set up logging at {0}. {1}".format(self.logpath, e.strerror))
             os._exit(1)
-        self._printDebug("Set up logging")
+        logger.debug("Set up logging")
 
     def _sendBackground(self):
         """
@@ -72,9 +51,9 @@ class Daemon():
             os.chdir("/")
             os.umask(0)
         except OSError as e:
-            self._printError("Unable to fork into background. {0}".format(e.strerror))
+            logger.error("Unable to fork into background. {0}".format(e.strerror))
             os._exit(1)
-        self._printDebug("Forked into background")
+        logger.debug("Forked into background")
         
     def _redirectIO(self):
         """
@@ -100,9 +79,9 @@ class Daemon():
             open(os.devnull, "w")
             open(os.devnull, "w")
         except IOError as e:
-            self._printError("Unable to redirect IO. {0}".format(e.strerror))
+            logger.error("Unable to redirect IO. {0}".format(e.strerror))
             os._exit(1)
-        self._printDebug("Redirected IO to /dev/null")
+        logger.debug("Redirected IO to /dev/null")
 
     def _writepid(self):        
         """
@@ -113,13 +92,13 @@ class Daemon():
             pidfile.write(str(os.getpid()))
             pidfile.close()
         except IOError as e:
-            self._printError("Unable to write pidfile at {0}. {1}".format(self.pidpath, e.strerror))
+            logger.error("Unable to write pidfile at {0}. {1}".format(self.pidpath, e.strerror))
             os._exit(1)
-        self._printDebug("Wrote pidfile")
+        logger.debug("Wrote pidfile")
 
     def start(self):
         if self.status():
-            self._printError("Bot already running!")
+            logger.error("Bot already running!")
             os._exit(1)
 
         if self.isDaemon:
@@ -128,11 +107,9 @@ class Daemon():
             self._setupLogging()
             self._writepid()
 
-        self._printInfo("Starting bot...")
+        logger.info("Starting bot...")
         try:
             self.bot.start()
-        except Exception as e:
-            self._printError(e)
         finally:
             self._clean()
             os._exit(1)
@@ -154,9 +131,9 @@ class Daemon():
 
 
     def stop(self):
-        self._printInfo("Stopping daemon...")
+        logger.info("Stopping daemon...")
         self.bot.disconnect("Farewell comrades!")
-        self._printDebug("Disconnected bot");
+        logger.debug("Disconnected bot");
         self._clean()
 
     def _clean(self):
@@ -165,7 +142,7 @@ class Daemon():
                 if os.path.exists(self.pidpath):
                     os.remove(self.pidpath)
             except OSError as e:
-                self._printWarning("Problem encountered deleting pidfile. {0}".format(e.strerror))
+                logger.warning("Problem encountered deleting pidfile. {0}".format(e.strerror))
 
     def sigterm_handler(self, signum, frame):
         self.stop()
@@ -175,12 +152,22 @@ class Daemon():
         self.bot.loadConfig([self.confpath, "fortunebot.conf"])
         
 def main():
+    # Set up basic stream logging
+    logger.setLevel(logging.DEBUG)
+    streamHandler = logging.StreamHandler()
+    formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
+    streamHandler.setFormatter(formatter) 
+    logger.addHandler(streamHandler)
+
+    # Parse input
     parser = ArgumentParser()
     parser.add_argument("--daemonize", dest="daemonize", action="store_true", default=False, help="run fortunebot as a daemon")
     parser.add_argument("--pid-file", dest="pidpath", default="/var/run/fortunebot/fortunebot.pid", help="specify path for pid file, if daemonize")
     parser.add_argument("--log-file", dest="logpath", default="/var/log/fortunebot/fortunebot.log", help="specify path for log file, if daemonize")
     parser.add_argument("--conf-file", dest="confpath", default="/opt/fortunebot/config/fortunebot.conf", help="specify path for config file")
     args = parser.parse_args()
+
+    # Start the bot!
     daemon = Daemon(args.daemonize, args.pidpath, args.logpath, args.confpath)
     daemon.start()
 

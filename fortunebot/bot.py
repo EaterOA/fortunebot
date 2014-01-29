@@ -32,11 +32,14 @@ import select, time, errno
 import irc.bot
 from fortunebot.EasyConfigParser import EasyConfigParser
 from fortunebot.scripts import *
+import logging
+logger = logging.getLogger("fortunebot")
 
 class FortuneBot(irc.bot.SingleServerIRCBot):
     def __init__(self, confpaths):
         super(FortuneBot, self).__init__([], "", "")
         self._getDefaults()
+        logger.debug("Loading initial config from {0}".format(", ".join(confpaths)))
         self.loadConfig(confpaths)
 
     def _getDefaults(self):
@@ -103,11 +106,13 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
 
     def start(self):
         if not self.config["server"] or not self.config["channel"]:
-            raise IOError("The server and channel must be specified!")
+            logger.error("The server and channel must be specified!")
+            return
         try:
             self.connect(self.config["server"], self.config["port"], self.config["nickname"], ircname=self.config["realname"])
         except irc.client.ServerConnectionError:
-            raise IOError("Unable to connect to server")
+            logger.error("Unable to connect to server")
+            return
         self._process_forever()
 
     def disconnect(self, msg=""):
@@ -133,7 +138,11 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         text = e.arguments[0].encode('utf-8')
         for name, s in self.scripts.iteritems():
             if "on_pubmsg" in dir(s):
-                msg = s.on_pubmsg(nick, channel, text)
+                try:
+                    msg = s.on_pubmsg(nick, channel, text)
+                except Exception as e:
+                    logger.warning("{0} script on_pubmsg: {1}".format(name, e))
+                    msg = None
                 if msg:
                     c.privmsg(channel, msg.decode("utf-8"))
 
