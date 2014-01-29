@@ -7,6 +7,9 @@ Very simple bot module based on irclib's testbot
 
 The known commands are:
 
+    !help [command]
+    -- Prints out help messages to the channel
+
     !insult
     --  Prints a shakespearean insult
 
@@ -27,7 +30,7 @@ The known commands are:
 
 import select, time, errno
 import irc.bot
-from ConfigParser import RawConfigParser
+from fortunebot.EasyConfigParser import EasyConfigParser
 from fortunebot.scripts import *
 
 class FortuneBot(irc.bot.SingleServerIRCBot):
@@ -49,6 +52,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             "weather_key": "",
             "markov_data": "",
             "markov_listen": "yes",
+            "markov_respond": "fortunebot",
             "fortune_length": 100,
             "server": "",
             "port": 6667,
@@ -61,12 +65,9 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
 
     def loadConfig(self, confpaths):
         # Override default values with anything in config file
-        parser = RawConfigParser(self.defaultConfig)
-        parser.read(confpaths)
         sections = ["Connect", "Scripts"]
-        for s in sections:
-            if not parser.has_section(s):
-                parser.add_section(s)
+        parser = EasyConfigParser(self.defaultConfig, sections)
+        parser.read(confpaths)
         pdict = {
             "server": parser.get("Connect", "server"),
             "port": parser.getint("Connect", "port"),
@@ -79,6 +80,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             "fortune_length": parser.getint("Scripts", "fortune_length"),
             "markov_data": parser.get("Scripts", "markov_data"),
             "markov_listen": parser.getboolean("Scripts", "markov_listen"),
+            "markov_respond": parser.get("Scripts", "markov_respond")
         }
         c = self.config
         c.update(pdict)
@@ -95,7 +97,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         if parser.getboolean("Scripts", "enable_8ball"):
             self.scripts["8ball"] = magic8ball.Magic8Ball()
         if parser.getboolean("Scripts", "enable_markov"):
-            self.scripts["markov"] = markov.Markov(c["markov_data"], c["markov_listen"], c["nickname"])
+            self.scripts["markov"] = markov.Markov(c["markov_data"], c["markov_listen"], c["markov_respond"])
         if parser.getboolean("Scripts", "enable_help"):
             self.scripts["help"] = bothelp.BotHelp()
 

@@ -13,7 +13,7 @@ class Fortune():
 
     def on_pubmsg(self, nick, channel, text):
         args = text.split()
-        if args[0] != "!fortune":
+        if not args or args[0] != "!fortune":
             return
         category = args[1] if len(args) > 1 else None
         return self.getFortune(category)

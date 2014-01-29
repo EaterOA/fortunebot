@@ -16,6 +16,8 @@ class Markov():
         self.chainKeywordChance = 0.4
 
     def on_pubmsg(self, nick, channel, text):
+        if not text.split():
+            return
         if self.listen:
             self._addLine(text)
         if self.magicWord in text:
@@ -104,7 +106,10 @@ class Markov():
         endChance = (c[None] * endMult) / sum(c.values())
         if random.random() < endChance:
             return None
-        return random.choice([w for w in c.elements() if w is not None])
+        res = random.choice([w for w in c.elements() if w is not None])
+        if res in keywords:
+            keywords.remove(res)
+        return res
 
     def generateSentence(self, keywords):
         if not keywords:

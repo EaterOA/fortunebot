@@ -10,7 +10,7 @@ class Insult():
 
     def on_pubmsg(self, nick, channel, text):
         args = text.split()
-        if args[0] != "!insult":
+        if not args or args[0] != "!insult":
             return
         return self.getInsult()
 

@@ -7,7 +7,7 @@ class BotHelp():
 
     def on_pubmsg(self, nick, channel, text):
         args = text.split()
-        if args[0] != "!help":
+        if not args or args[0] != "!help":
             return
         return self.getHelp(None if len(args) == 1 else args[1])
 

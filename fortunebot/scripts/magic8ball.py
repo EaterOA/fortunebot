@@ -18,7 +18,7 @@ class Magic8Ball():
 
     def on_pubmsg(self, nick, channel, text):
         args = text.split()
-        if args[0] != "!8ball":
+        if not args or args[0] != "!8ball":
             return
         return random.choice(self.messages)
 

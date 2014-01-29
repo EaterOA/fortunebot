@@ -18,3 +18,4 @@ weather_key = YOURKEYHERE
 fortune_length = 100
 markov_data = 
 markov_listen = yes
+markov_respond = fortunebot
