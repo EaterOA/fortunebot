@@ -31,6 +31,7 @@ The known commands are:
 import select, time, errno
 import irc.bot
 from fortunebot.EasyConfigParser import EasyConfigParser
+from fortunebot.RepeatingThread import RepeatingThread
 from fortunebot.scripts import *
 import logging
 logger = logging.getLogger("fortunebot")
@@ -41,6 +42,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         self._getDefaults()
         logger.debug("Loading initial config from {0}".format(", ".join(confpaths)))
         self.loadConfig(confpaths)
+        self.pollThread = RepeatingThread(1.0, 0.0, 0, self.on_poll)
 
     def _getDefaults(self):
         self.config = {}
@@ -52,11 +54,14 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             "enable_8ball": "yes",
             "enable_markov": "yes",
             "enable_help": "yes",
+            "enable_remind": "yes",
             "weather_key": "",
             "markov_data": "",
             "markov_listen": "yes",
             "markov_respond": "fortunebot",
             "fortune_length": 100,
+            "remind_tasklimit": 1000,
+            "remind_durlimit": 604800,
             "server": "",
             "port": 6667,
             "channel": "",
@@ -83,7 +88,9 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             "fortune_length": parser.getint("Scripts", "fortune_length"),
             "markov_data": parser.get("Scripts", "markov_data"),
             "markov_listen": parser.getboolean("Scripts", "markov_listen"),
-            "markov_respond": parser.get("Scripts", "markov_respond")
+            "markov_respond": parser.get("Scripts", "markov_respond"),
+            "remind_tasklimit": parser.getint("Scripts", "remind_tasklimit"),
+            "remind_durlimit": parser.getint("Scripts", "remind_durlimit")
         }
         c = self.config
         c.update(pdict)
@@ -103,6 +110,8 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             self.scripts["markov"] = markov.Markov(c["markov_data"], c["markov_listen"], c["markov_respond"])
         if parser.getboolean("Scripts", "enable_help"):
             self.scripts["help"] = bothelp.BotHelp()
+        if parser.getboolean("Scripts", "enable_remind"):
+            self.scripts["remind"] = remind.Remind(c["remind_tasklimit"], c["remind_durlimit"])
 
     def start(self):
         if not self.config["server"] or not self.config["channel"]:
@@ -120,6 +129,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         self.connection.disconnect(msg)
 
     def on_disconnect(self, c, e):
+        self.pollThread.cancel()
         if self.config["reconnect"]:
             self.connection.execute_delayed(self.config["reconnect_interval"], self.connection.reconnect)
 
@@ -127,7 +137,25 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         c.nick(c.get_nickname() + "_")
 
     def on_welcome(self, c, e):
+        self.pollThread.start()
         c.join(self.config["channel"])
+
+    def on_poll(self):
+        c = self.connection
+        channel = self.config["channel"]
+        for name, s in self.scripts.iteritems():
+            if "on_poll" in dir(s):
+                try:
+                    msg = s.on_poll()
+                except Exception as e:
+                    logger.warning("{0} script on_poll: {1}".format(name, e))
+                    msg = None
+                if msg:
+                    if type(msg) is str:
+                        c.privmsg(channel, msg.decode("utf-8"))
+                    elif type(msg) is list:
+                        for m in msg:
+                            c.privmsg(channel, m.decode("utf-8"))
 
     def on_privmsg(self, c, e):
         pass
@@ -144,7 +172,11 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
                     logger.warning("{0} script on_pubmsg: {1}".format(name, e))
                     msg = None
                 if msg:
-                    c.privmsg(channel, msg.decode("utf-8"))
+                    if type(msg) is str:
+                        c.privmsg(channel, msg.decode("utf-8"))
+                    elif type(msg) is list:
+                        for m in msg:
+                            c.privmsg(channel, m.decode("utf-8"))
 
     def _process_forever(self, timeout=0.2):
         """
