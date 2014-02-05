@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from collections import deque
-from fortunebot.UndeadArgumentParser import UndeadArgumentParser
 import shlex
-from time import time
+import time
+from collections import deque
+from fortunebot.utils import UndeadArgumentParser
 
 class Remind():
 
@@ -13,7 +13,7 @@ class Remind():
         self.tasklist = deque()
 
     def on_poll(self):
-        curTime = int(time())
+        curTime = int(time.time())
         toggleList = []
         for i, t in enumerate(self.tasklist):
             if curTime >= t.end:
@@ -21,7 +21,7 @@ class Remind():
         if not toggleList:
             return None
         msgList = []
-        for i, t in reversed(toggleList):
+        for i, t in toggleList:
             del self.tasklist[i]
             msgList.append("{0}: {1}".format(t.target, t.message))
         return msgList
@@ -55,7 +55,7 @@ class Remind():
             return "NOPE. I can only remember things for {0} seconds".format(self.durlimit)
         if len(self.tasklist) == self.tasklimit:
             return "NOPE. I have too many other things to remember."
-        task = ReminderTask(int(time()) + dur, target, message)
+        task = ReminderTask(int(time.time()) + dur, target, message)
         self.tasklist.append(task)
         return "Task registered"
 

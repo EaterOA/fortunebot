@@ -1,10 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 """
-Very simple bot module based on irclib's testbot
-
 The known commands are:
 
     !help [command]
@@ -23,24 +20,29 @@ The known commands are:
     !8ball
     --  Prints a random magic 8-ball reply
 
+    !remind [-m|-h|-d] <time> <target> <message>
+    --  Notify target with message after a certain time. Use options -m,
+        -h, or -d to specify time in minutes, hours, or days
+
     If you call the bot's nickname, it will respond with a markov-chain-
     generated response
 
 """
 
-import select, time, errno
-import irc.bot
-from fortunebot.EasyConfigParser import EasyConfigParser
-from fortunebot.RepeatingThread import RepeatingThread
-from fortunebot.scripts import *
+import select
+import time
+import errno
 import logging
 logger = logging.getLogger("fortunebot")
+import irc.bot
+from fortunebot.utils import EasyConfigParser, RepeatingThread
+from fortunebot.scripts import *
 
 class FortuneBot(irc.bot.SingleServerIRCBot):
     def __init__(self, confpaths):
         super(FortuneBot, self).__init__([], "", "")
         self._getDefaults()
-        logger.debug("Loading initial config from {0}".format(", ".join(confpaths)))
+        logger.info("Loading initial config from {0}".format(", ".join(confpaths)))
         self.loadConfig(confpaths)
         self.pollThread = RepeatingThread(1.0, 0.0, 0, self.on_poll)
 
@@ -115,7 +117,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
 
     def start(self):
         if not self.config["server"] or not self.config["channel"]:
-            logger.error("The server and channel must be specified!")
+            logger.error("No configurations for server and channel found!")
             return
         try:
             self.connect(self.config["server"], self.config["port"], self.config["nickname"], ircname=self.config["realname"])
@@ -127,6 +129,16 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
     def disconnect(self, msg=""):
         self.config["reconnect"] = False
         self.connection.disconnect(msg)
+
+    def sendPubMsg(self, msg):
+        c = self.connection
+        channel = self.config["channel"]
+        if msg:
+            if type(msg) is str:
+                c.privmsg(channel, msg.decode("utf-8"))
+            elif type(msg) is list:
+                for m in msg:
+                    c.privmsg(channel, m.decode("utf-8"))
 
     def on_disconnect(self, c, e):
         self.pollThread.cancel()
@@ -148,14 +160,9 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
                 try:
                     msg = s.on_poll()
                 except Exception as e:
-                    logger.warning("{0} script on_poll: {1}".format(name, e))
+                    logger.warning("{0} script error during on_poll: {1}".format(name, e))
                     msg = None
-                if msg:
-                    if type(msg) is str:
-                        c.privmsg(channel, msg.decode("utf-8"))
-                    elif type(msg) is list:
-                        for m in msg:
-                            c.privmsg(channel, m.decode("utf-8"))
+                self.sendPubMsg(msg)
 
     def on_privmsg(self, c, e):
         pass
@@ -169,14 +176,9 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
                 try:
                     msg = s.on_pubmsg(nick, channel, text)
                 except Exception as e:
-                    logger.warning("{0} script on_pubmsg: {1}".format(name, e))
+                    logger.warning("{0} script error during on_pubmsg: {1}".format(name, e))
                     msg = None
-                if msg:
-                    if type(msg) is str:
-                        c.privmsg(channel, msg.decode("utf-8"))
-                    elif type(msg) is list:
-                        for m in msg:
-                            c.privmsg(channel, m.decode("utf-8"))
+                self.sendPubMsg(msg)
 
     def _process_forever(self, timeout=0.2):
         """

@@ -21,7 +21,7 @@ CONFDIR=/opt/$NAME/config
 CONFFILE=$CONFDIR/$NAME.conf
 SCRIPTNAME=/etc/init.d/$NAME
 DAEMON=/opt/$NAME/bin/$NAME
-DAEMON_ARGS="--daemon --pid-file $PIDFILE --log-file $LOGFILE --conf-file $CONFFILE"
+DAEMON_ARGS="--daemonize --pidpath $PIDFILE --logpath $LOGFILE --confpath $CONFFILE"
 USER=fortunebot
 GROUP=fortunebot
 

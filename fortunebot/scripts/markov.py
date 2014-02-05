@@ -18,10 +18,10 @@ class Markov():
     def on_pubmsg(self, nick, channel, text):
         if not text.split():
             return
-        if self.listen:
-            self._addLine(text)
         if self.magicWord in text:
             return self.generate(text)
+        elif self.listen:
+            self._addLine(text)
 
     def _addLine(self, line):
         for triplet in self._triples(line):

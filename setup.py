@@ -12,7 +12,7 @@ setup(name='fortunebot',
       author="Vincent Wong",
       author_email="duperduper@ucla.edu",
       license="GPL3",
-      packages=["fortunebot", "fortunebot.scripts"],
+      packages=["fortunebot", "fortunebot.scripts", "fortunebot.utils"],
       install_requires=["irc"],
       zip_safe=False
      )

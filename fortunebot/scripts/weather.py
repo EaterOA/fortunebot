@@ -14,7 +14,7 @@ class Weather():
 
     def on_pubmsg(self, nick, channel, text):
         args = text.split()
-        if not args or args[0] != "!w" and args[0] != "!weather":
+        if not args or args[0] not in ["!w", "!weather"]:
             return
         zipcode = args[1] if len(args) > 1 else "90024"
         return self.getWeather(zipcode)

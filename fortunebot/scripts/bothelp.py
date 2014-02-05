@@ -14,7 +14,7 @@ class BotHelp():
     def getHelp(self, script): 
         msg = ""
         if not script:
-            msg = "Commands: !insult, !weather, !8ball, !fortune"
+            msg = "Commands: !insult, !weather, !8ball, !fortune, !remind"
         elif script == "insult":
             msg = "!insult - Insults you elegantly"
         elif script == "weather":
@@ -27,6 +27,10 @@ class BotHelp():
                   "optional category"
         elif script == "markov":
             msg = "Call fortunebot's name, and it shall respond"
+        elif script == "remind":
+            msg = "!remind [-m|-h|-d] <time> <target> <message> - Notify "\
+                  "target with message after a certain time. -m, -h, or "\
+                  "-d specifies that the time is in minutes, hours, or days"
         else:
             msg = "ERROR: Unrecognized command name!"
         return msg
