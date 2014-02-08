@@ -7,6 +7,7 @@ Accepts these commands:
 - !fortune - Outputs a short UNIX fortune cookie
 - !8ball - Gives a magic 8-ball response
 - !weather - Provides weather information about a specified zipcode
+- !remind - Allows users to set reminders for themselves
 
 If you call its nickname in a public message, it will respond with a markov chain generated reply
 
@@ -18,9 +19,9 @@ If you're a sysadmin who wants to install this bot as a daemon on a Debian syste
 
 You must also configure fortunebot by renaming /opt/fortunebot/config/fortunebot.conf.example to fortunebot.conf, and editing whatever settings you want inside. Any missing settings will default to the same configuration in the example, EXCEPT for server and channel, which must be read from the config file.
 
-If you don't have admin privileges, unfortunately you still need to find some way to install the fortunebot python package. VirtualEnv works great. After you install the package, you can run the bot by directly invoking daemon.py.
+If you don't have admin privileges, unfortunately you still need to find some way to install the fortunebot python package. virtualenv works great. After you install the package, you can run the bot by directly invoking botrunner.py.
 
-The above comments about configuration applies here, except you can specify the location of the config file via command line in daemon.py. Check daemon.py --help to see full list of options.
+The above comments about configuration applies here, except you can specify the location of the config file via command line in botrunner.py. Check botrunner.py --help to see full list of options.
 
 # Dependencies #
 

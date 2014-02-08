@@ -3,7 +3,7 @@
 
 """
 Entry class into fortunebot. Sets up basic logging, handles file paths,
-and daemonizes the program if necessary
+and daemonizes the process if necessary
 """
 
 import os
@@ -15,19 +15,25 @@ from argparse import ArgumentParser
 from fortunebot.bot import FortuneBot
 
 class FortunebotRunner():
-    def __init__(self, daemonize, pidpath, logpath, confpath):
-        self.daemonize = daemonize
-        if self.daemonize and not (pidpath and logpath and confpath):
-            _printError("pidfile, logfile, and confpath must be specified")
+    def __init__(self, daemonize, pidpath, logpath, confpath, workpath):
+        self.workpath = os.path.abspath(workpath)
+        try:
+            os.chdir(self.workpath)
+        except Exception as e:
+            logger.error("{0}".format(e)) 
             os._exit(1)
+        self.daemonize = daemonize
         self.pidpath = os.path.abspath(pidpath)
         self.logpath = os.path.abspath(logpath)
-        self.confpath = os.path.abspath(confpath)
+        self.confpaths = ["/etc/fortunebot.conf",
+                          os.path.abspath("fortunebot.conf")]
+        if self.confpaths[-1] != os.path.abspath(confpath):
+            self.confpaths.append(os.path.abspath(confpath))
         signal.signal(signal.SIGTERM, self.sigterm_handler)
         signal.signal(signal.SIGINT, self.sigterm_handler)
         signal.signal(signal.SIGHUP, self.sighup_handler)
         signal.siginterrupt(signal.SIGHUP, False)
-        self.bot = FortuneBot([self.confpath, os.path.abspath("fortunebot.conf"), "/etc/fortunebot.conf"])
+        self.bot = FortuneBot(self.confpaths)
 
     def _setupLogging(self):
         """
@@ -114,6 +120,7 @@ class FortunebotRunner():
             self._redirectIO()
             self._setupLogging()
             self._writepid()
+            os.chdir(self.workpath)
 
         logger.info("Starting bot")
         try:
@@ -157,7 +164,7 @@ class FortunebotRunner():
         os._exit(0)
 
     def sighup_handler(self, signum, frame):
-        self.bot.loadConfig([self.confpath, "fortunebot.conf"])
+        self.bot.loadConfig(self.confpaths)
         
 def main():
 
@@ -171,14 +178,16 @@ def main():
     # Parse input
     parser = ArgumentParser()
     parser.add_argument("--daemonize", action="store_true", default=False, help="run fortunebot as a daemon")
-    parser.add_argument("--pidpath", default="/var/run/fortunebot/fortunebot.pid", help="specify path for pid file, if daemonize")
-    parser.add_argument("--logpath", default="/var/log/fortunebot/fortunebot.log", help="specify path for log file, if daemonize")
-    parser.add_argument("--confpath", default="/opt/fortunebot/config/fortunebot.conf", help="specify path for config file")
+    parser.add_argument("--confpath", default="fortunebot.conf", help="Specify path for config file. Default fortunebot.conf")
+    parser.add_argument("--pidpath", default="fortunebot.pid", help="Specify path for pid file, if daemonize. Default fortunebot.pid")
+    parser.add_argument("--logpath", default="fortunebot.log", help="Specify path for log file, if daemonize. Default fortunebot.log")
+    parser.add_argument("--workpath", default=".", help="Specify the working directory of the process, which affects all relative paths on command line and config file. Default current directory")
     args = parser.parse_args()
 
     # Start the bot!
     runner = FortunebotRunner(args.daemonize, args.pidpath,
-                              args.logpath, args.confpath)
+                              args.logpath, args.confpath,
+                              args.workpath)
     runner.start()
 
 if __name__ == "__main__":
