@@ -1,6 +1,6 @@
 #! /bin/bash
 NAME=fortunebot
-HOMEDIR=/opt/$NAME
+CONFDIR=/var/lib/$NAME
 PIDDIR=/var/run/$NAME
 LOGDIR=/var/log/$NAME
 
@@ -11,6 +11,9 @@ fi
 if [ -d $LOGDIR ]; then
     rm -r $LOGDIR
 fi
+if [ -d $CONFDIR ]; then
+    rm -r $CONFDIR
+fi
 
 # Remove init script
 if [ -f /etc/init.d/$NAME ]; then
@@ -18,14 +21,11 @@ if [ -f /etc/init.d/$NAME ]; then
     update-rc.d fortunebot remove
 fi
 
-# Remove daemon user and everything in its home
+# Remove daemon user
 id -u "$NAME" &>/dev/null
 if [ $? == 0 ]; then
-    deluser --quiet --system --remove-home $NAME
+    deluser --quiet --system $NAME
     deluser --quiet --system --group $NAME
-fi
-if [ -d /opt/$NAME ]; then
-    rm -r /opt/$NAME
 fi
 
 # Uninstall the fortunebot package

@@ -1,28 +1,21 @@
 #! /bin/bash
 NAME=fortunebot
-HOMEDIR=/opt/$NAME
+BINPATH=/usr/local/bin/$NAME
 PIDDIR=/var/run/$NAME
 LOGDIR=/var/log/$NAME
+CONFDIR=/var/lib/$NAME
 
-# Check if the fortunebot package is installed
+# Check if the fortunebot python package is installed
 python -Ec "import os; os.chdir('/'); import $NAME" &>/dev/null
 if [ $? == 1 ]; then
     python setup.py install
 fi
 
-# Set up pidfile and logfile directories
-id -u "$NAME" &>/dev/null
+# Add user
+id -u $NAME &>/dev/null
 if [ $? != 0 ]; then
-    adduser --quiet --system --group --home $HOMEDIR --disabled-login --shell /bin/false $NAME
+    adduser --quiet --system --group --no-create-home --disabled-login --shell /bin/false $NAME
 fi
-if [ ! -d $PIDDIR ]; then
-    mkdir -p $PIDDIR
-fi
-if [ ! -d $LOGDIR ]; then
-    mkdir -p $LOGDIR
-fi
-chown $NAME:$NAME $PIDDIR
-chown $NAME:$NAME $LOGDIR
 
 # Copy scripts
 cp init/$NAME /etc/init.d/$NAME
@@ -33,10 +26,9 @@ else
     update-rc.d fortunebot stop 99 0 1 2 3 4 5 6 .
 fi
 
-# Set up home
-mkdir -p $HOMEDIR/bin $HOMEDIR/config $HOMEDIR/data
-cp $NAME/botrunner.py $HOMEDIR/bin/$NAME
-cp config/$NAME.conf.example $HOMEDIR/config/
-chmod 755 $HOMEDIR/bin/$NAME
-chown -R $NAME:$NAME $HOMEDIR
-
+# Set up environment
+mkdir -p $PIDDIR $LOGDIR $CONFDIR
+cp config/$NAME.conf.example $CONFDIR
+cp $NAME/botrunner.py $BINPATH
+chmod 755 $BINPATH
+chown -R $NAME:$NAME $BINPATH $PIDDIR $LOGDIR $CONFDIR
