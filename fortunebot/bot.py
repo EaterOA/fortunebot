@@ -57,6 +57,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             "enable_markov": "yes",
             "enable_help": "yes",
             "enable_remind": "yes",
+            "enable_replace": "yes",
             "weather_key": "",
             "markov_data": "",
             "markov_listen": "yes",
@@ -64,6 +65,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             "fortune_length": 100,
             "remind_tasklimit": 1000,
             "remind_durlimit": 604800,
+            "replace_cachedur": 30,
             "server": "",
             "port": 6667,
             "channel": "",
@@ -92,7 +94,8 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             "markov_listen": parser.getboolean("Scripts", "markov_listen"),
             "markov_respond": parser.get("Scripts", "markov_respond"),
             "remind_tasklimit": parser.getint("Scripts", "remind_tasklimit"),
-            "remind_durlimit": parser.getint("Scripts", "remind_durlimit")
+            "remind_durlimit": parser.getint("Scripts", "remind_durlimit"),
+            "replace_cachedur": parser.getint("Scripts", "replace_cachedur")
         }
         c = self.config
         c.update(pdict)
@@ -114,6 +117,8 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             self.scripts["help"] = bothelp.BotHelp()
         if parser.getboolean("Scripts", "enable_remind"):
             self.scripts["remind"] = remind.Remind(c["remind_tasklimit"], c["remind_durlimit"])
+        if parser.getboolean("Scripts", "enable_replace"):
+            self.scripts["replace"] = replace.Replace(c["replace_cachedur"])
 
     def start(self):
         if not self.config["server"] or not self.config["channel"]:
