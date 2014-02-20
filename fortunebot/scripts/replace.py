@@ -2,6 +2,9 @@
 
 import time
 import re
+import shlex
+from fortunebot.utils import UndeadArgumentParser
+from argparse import ArgumentError
 
 class Replace():
 
@@ -35,33 +38,47 @@ class Replace():
         return -1
 
     def parseArgs(self, text):
-        if len(text) < 4 or text[:2] != 's/':
+        if len(text) < 4:
             return None
-        text = text[2:]
-        idx = self.findUnescapedSlash(text)
-        if idx == -1:
-            return None
-        pattern = text[:idx]
-        repl = text[(idx+1):]
-        if self.findUnescapedSlash(repl) != -1:
-            return None
-        return [pattern, repl]
+        if text[:2] == 's/':
+            text = text[2:]
+            idx = self.findUnescapedSlash(text)
+            if idx == -1:
+                return None
+            pattern = text[:idx]
+            repl = text[(idx+1):]
+            return [pattern, repl]
+        args = text.split()
+        if args[0] == "!replace":
+            sargs = shlex.split(" ".join(args[1:])) 
+            parser = UndeadArgumentParser(add_help=False)
+            parser.add_argument("pattern")
+            parser.add_argument("repl")
+            pargs = parser.parse_args(sargs)
+            return [pargs.pattern, pargs.repl]
+        return None
+            
 
     def on_pubmsg(self, nick, channel, text):
-        args = self.parseArgs(text)
+        try:
+            args = self.parseArgs(text)
+        except ArgumentError as e:
+            return "Syntax: !replace <pattern> <repl>"
         if not args:
             c = ReplaceCache(int(time.time()) + self.cachedur, text)
             self.cache[nick] = c
             return None
+        if nick not in self.cache:
+            return None
         pattern = args[0]
         repl = args[1]
         try:
-            regobj = re.compile(pattern)
+            res = re.sub(pattern, repl, self.cache[nick].message)
         except re.error as e:
             return "But {0}, that's not valid regex!".format(nick)
-        if nick not in self.cache:
-            return None
-        res = regobj.sub(repl, self.cache[nick].message)
+        # Limit length to prevent abuse
+        if len(res) > 200:
+            res = res[:200] + "[...]"
         return "{0} meant \"{1}\"".format(nick, res) 
 
 class ReplaceCache():

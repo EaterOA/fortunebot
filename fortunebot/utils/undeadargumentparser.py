@@ -8,4 +8,4 @@ import argparse
 class UndeadArgumentParser(argparse.ArgumentParser):
 
     def error(self, message):
-        raise ValueError(message)
+        raise argparse.ArgumentError(None, message)

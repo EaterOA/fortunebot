@@ -14,7 +14,7 @@ class BotHelp():
     def getHelp(self, script): 
         msg = ""
         if not script:
-            msg = "Commands: !insult, !weather, !8ball, !fortune, !remind"
+            msg = "Commands: !insult, !weather, !8ball, !fortune, !remind, !replace"
         elif script == "insult":
             msg = "!insult - Insults you elegantly"
         elif script == "weather":
@@ -31,6 +31,10 @@ class BotHelp():
             msg = "!remind [-m|-h|-d] <time> <target> <message> - Notify "\
                   "target with message after a certain time. -m, -h, or "\
                   "-d specifies that the time is in minutes, hours, or days"
+        elif script == "replace":
+            msg = "!replace <pattern> <replacement> - Replace pattern from "\
+                  "your previous message with replacement. Also triggered by "\
+                  "s/<pattern>/<replacement>"
         else:
             msg = "ERROR: Unrecognized command name!"
         return msg
