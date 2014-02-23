@@ -8,14 +8,16 @@ from argparse import ArgumentError
 
 class Replace():
 
-    def __init__(self, cachedur):
-        self.cachedur = cachedur
-        if self.cachedur < 0:
-            self.cachedur = 0
+    def __init__(self, enableShortcut, maxLength, cacheDur):
+        self.enableShortcut = enableShortcut
+        self.maxLength = maxLength
+        self.cacheDur = cacheDur
+        if self.cacheDur < 0:
+            self.cacheDur = 0
         self.cache = {}
 
     def on_poll(self):
-        if not self.cachedur:
+        if not self.cacheDur:
             return None
         curTime = int(time.time())
         expiredList = []
@@ -40,13 +42,15 @@ class Replace():
     def parseArgs(self, text):
         if len(text) < 4:
             return None
-        if text[:2] == 's/':
+        if self.enableShortcut and text[:2] == 's/':
             text = text[2:]
             idx = self.findUnescapedSlash(text)
             if idx == -1:
                 return None
             pattern = text[:idx]
             repl = text[(idx+1):]
+            if not pattern:
+                return None
             return [pattern, repl]
         args = text.split()
         if args[0] == "!replace":
@@ -65,7 +69,7 @@ class Replace():
         except ArgumentError as e:
             return "Syntax: !replace <pattern> <repl>"
         if not args:
-            c = ReplaceCache(int(time.time()) + self.cachedur, text)
+            c = ReplaceCache(int(time.time()) + self.cacheDur, text)
             self.cache[nick] = c
             return None
         if nick not in self.cache:
@@ -77,9 +81,9 @@ class Replace():
         except re.error as e:
             return "But {0}, that's not valid regex!".format(nick)
         # Limit length to prevent abuse
-        if len(res) > 200:
-            res = res[:200] + "[...]"
-        return "{0} meant \"{1}\"".format(nick, res) 
+        if len(res) > self.maxLength:
+            res = res[:self.maxLength] + "[...]"
+        return "{0} meant: {1}".format(nick, res) 
 
 class ReplaceCache():
     

@@ -23,4 +23,6 @@ markov_listen = yes
 markov_respond = fortunebot
 remind_durlimit = 604800
 remind_tasklimit = 1000
-replace_cachedur = 30
+replace_enableshortcut = yes
+replace_maxlength = 200
+replace_cachedur = 3600

@@ -66,7 +66,8 @@ class Markov():
         data = f.read()
         lines = data.split('\n')
         for line in lines:
-            self._addLine(line)
+            if self.magicWord not in line:
+                self._addLine(line)
         
     def _triples(self, line):
         if not line:
@@ -82,7 +83,7 @@ class Markov():
     def _filterKeywords(self, text):
         keywords = []
         for word in text.split():
-            if word in self.table[1] and word != self.magicWord:
+            if word in self.table[1] and self.magicWord not in word:
                 keywords.append(word)
         return keywords
 
