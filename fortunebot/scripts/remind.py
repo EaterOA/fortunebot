@@ -21,7 +21,7 @@ class Remind():
         if not toggleList:
             return None
         msgList = []
-        for i, t in toggleList:
+        for i, t in reversed(toggleList):
             del self.tasklist[i]
             msgList.append("{0}: {1}".format(t.target, t.message))
         return msgList
