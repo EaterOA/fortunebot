@@ -7,10 +7,9 @@ Basically a better version of threading.Timer
 
 import threading
 
-class RepeatingThread(threading.Thread):
+class RepeatingThread():
 
     def __init__(self, interval, delay, instances, function, *args, **kwargs):
-        threading.Thread.__init__(self)
         self.interval = interval
         self.delay = delay
         self.instances = instances if instances else -1
@@ -18,6 +17,13 @@ class RepeatingThread(threading.Thread):
         self.args = args
         self.kwargs = kwargs
         self.finished = threading.Event()
+        self.finished.set()
+
+    def start(self):
+        if not self.finished.is_set():
+            raise RuntimeError("Timer is still running!")
+        self.finished.clear()
+        threading.Thread(target=self.run).start()
 
     def cancel(self):
         self.finished.set()

@@ -4,7 +4,7 @@ port = 6667
 channel = #test
 nickname = fortunebot
 realname = fortunebot
-reconnect = yes
+reconnect_tries = 100
 reconnect_interval = 30
 
 [Scripts]

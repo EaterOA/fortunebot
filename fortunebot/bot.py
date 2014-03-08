@@ -45,6 +45,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         logger.info("Loading initial config from {0}".format(", ".join(confpaths)))
         self.loadConfig(confpaths)
         self.pollThread = RepeatingThread(1.0, 0.0, 0, self.on_poll)
+        self.exit = False
 
     def _getDefaults(self):
         self.config = {}
@@ -73,7 +74,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             "channel": "",
             "nickname": "fortunebot",
             "realname": "fortunebot",
-            "reconnect": "yes",
+            "reconnect_tries": "100",
             "reconnect_interval": 30
         }
 
@@ -88,7 +89,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             "channel": parser.get("Connect", "channel"),
             "nickname": parser.get("Connect", "nickname"),
             "realname": parser.get("Connect", "realname"),
-            "reconnect": parser.getboolean("Connect", "reconnect"),
+            "reconnect_tries": parser.getint("Connect", "reconnect_tries"),
             "reconnect_interval": parser.getint("Connect", "reconnect_interval"),
             "weather_key": parser.get("Scripts", "weather_key"),
             "fortune_length": parser.getint("Scripts", "fortune_length"),
@@ -103,6 +104,8 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         }
         c = self.config
         c.update(pdict)
+        if c["reconnect_tries"] < 0:
+            c["reconnect_tries"] = 0
         if c["reconnect_interval"] < 0:
             c["reconnect_interval"] = 0
         #Load scripts with config
@@ -149,15 +152,27 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
                 for m in msg:
                     c.privmsg(channel, m.decode("utf-8"))
 
+    def reconnect(self):
+        for count in xrange(self.config["reconnect_tries"]):
+            logger.info("Reconnecting to server (try #{0})...".format(count+1))
+            self.connection.reconnect()
+            time.sleep(self.config["reconnect_interval"])
+            if self.connection.is_connected:
+                return
+        logger.warning("Shutting down due to maximum reconnect limit")
+        self.exit = True
+
     def on_disconnect(self, c, e):
+        logger.info("Disconnected from server")
         self.pollThread.cancel()
-        if self.config["reconnect"]:
-            self.connection.execute_delayed(self.config["reconnect_interval"], self.connection.reconnect)
+        if self.config["reconnect_tries"]:
+            self.connection.execute_delayed(self.config["reconnect_interval"], self.reconnect)
 
     def on_nicknameinuse(self, c, e):
         c.nick(c.get_nickname() + "_")
 
     def on_welcome(self, c, e):
+        logger.info("Connected to server")
         self.pollThread.start()
         c.join(self.config["channel"])
 
@@ -195,8 +210,9 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         to work around an unhandled InterruptedSystemCall exception on a
         SIGHUP
         https://bitbucket.org/jaraco/irc/issue/36/client-crashes-on-eintr
+        Also added a way to end the loop
         """
-        while 1:
+        while not self.exit:
             self._process_once(timeout)
 
     def _process_once(self, timeout=0):

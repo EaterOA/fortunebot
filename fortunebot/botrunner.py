@@ -126,7 +126,7 @@ class FortunebotRunner():
         try:
             self.bot.start()
         except Exception as e:
-            logger.error("bot died: {0}".format(e))
+            logger.error("Bot died: {0}".format(e))
         finally:
             self._clean()
             os._exit(1)
@@ -146,12 +146,6 @@ class FortunebotRunner():
             return False
         return os.path.exists("/proc/{0}".format(pid))
 
-
-    def stop(self):
-        logger.info("Disconnecting bot")
-        self.bot.disconnect("Farewell comrades!")
-        self._clean()
-
     def _clean(self):
         if self.daemonize:
             logger.info("Removing pid file")
@@ -162,10 +156,13 @@ class FortunebotRunner():
                 logger.warning("Problem encountered deleting pidfile: {0}".format(e.strerror))
 
     def sigterm_handler(self, signum, frame):
-        self.stop()
+        logger.info("Disconnecting bot...")
+        self.bot.disconnect("Farewell comrades!")
+        self._clean()
         os._exit(0)
 
     def sighup_handler(self, signum, frame):
+        logger.info("Reloading bot configs")
         self.bot.loadConfig(self.confpaths)
         
 def main():
