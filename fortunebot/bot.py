@@ -24,6 +24,9 @@ The known commands are:
     --  Notify target with message after a certain time. Use options -m,
         -h, or -d to specify time in minutes, hours, or days
 
+    !replace <pattern> <replacement>
+    -- Replace pattern in user's most recent message with replacement
+
     If you call the bot's nickname, it will respond with a markov-chain-
     generated response
 

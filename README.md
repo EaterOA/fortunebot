@@ -8,6 +8,7 @@ Accepts these commands:
 - !8ball - Gives a magic 8-ball response
 - !weather - Provides weather information about a specified zipcode
 - !remind - Allows users to set reminders for themselves
+- !replace - Allows users to correct their most recent message
 
 If you call its nickname in a public message, it will respond with a markov
 chain generated reply
