@@ -35,9 +35,9 @@ class Replace():
             if text[l] == '\\':
                 l += 1
             elif text[l] == '/':
-                return l
+                break
             l += 1
-        return -1
+        return l
 
     def parseArgs(self, text):
         if len(text) < 4:
@@ -45,10 +45,13 @@ class Replace():
         if self.enableShortcut and text[:2] == 's/':
             text = text[2:]
             idx = self.findUnescapedSlash(text)
-            if idx == -1:
+            if idx == len(text):
                 return None
             pattern = text[:idx]
             repl = text[(idx+1):]
+            idx = self.findUnescapedSlash(repl)
+            if idx != len(repl):
+                repl = repl[:idx]
             if not pattern:
                 return None
             return [pattern, repl]
