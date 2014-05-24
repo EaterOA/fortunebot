@@ -32,9 +32,13 @@ class BotHelp():
                   "target with message after a certain time. -m, -h, or "\
                   "-d specifies that the time is in minutes, hours, or days"
         elif script == "replace":
-            msg = "!replace <pattern> <replacement> - Replace pattern from "\
-                  "your previous message with replacement. Also triggered by "\
-                  "s/<pattern>/<replacement>"
+            msg = "!replace [-l <line> | -s] <pattern> <replacement> - "\
+            "Replace pattern from your previous message with replacement. "\
+            "Also triggered by s/<pattern>/<replacement>. Use the -l flag to "\
+            "select a specific past line, or -s to find the most recent line "\
+            "to which pattern applies to. Using the shortcut notation, a "\
+            "number after a third slash specifies line, and 's' specifies "\
+            "search mode"
         else:
             msg = "ERROR: Unrecognized command name!"
         return msg

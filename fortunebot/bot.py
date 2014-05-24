@@ -24,8 +24,11 @@ The known commands are:
     --  Notify target with message after a certain time. Use options -m,
         -h, or -d to specify time in minutes, hours, or days
 
-    !replace <pattern> <replacement>
+    !replace [-l <line> | -s] <pattern> <replacement>
     -- Replace pattern in user's most recent message with replacement
+       The -l or --line option allows you specify which line to replace
+       The -s option tells replace to search backwards and edit the most
+       recent line in which the pattern matches something
 
     If you call the bot's nickname, it will respond with a markov-chain-
     generated response
@@ -71,7 +74,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             "remind_durlimit": 604800,
             "replace_enableshortcut": "yes",
             "replace_maxlength": 3600,
-            "replace_cachedur": 3600,
+            "replace_maxlines": 20,
             "server": "",
             "port": 6667,
             "channel": "",
@@ -103,7 +106,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             "remind_durlimit": parser.getint("Scripts", "remind_durlimit"),
             "replace_enableshortcut": parser.getboolean("Scripts", "replace_enableshortcut"),
             "replace_maxlength": parser.getint("Scripts", "replace_maxlength"),
-            "replace_cachedur": parser.getint("Scripts", "replace_cachedur")
+            "replace_maxlines": parser.getint("Scripts", "replace_maxlines")
         }
         c = self.config
         c.update(pdict)
@@ -128,7 +131,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         if parser.getboolean("Scripts", "enable_remind"):
             self.scripts["remind"] = remind.Remind(c["remind_tasklimit"], c["remind_durlimit"])
         if parser.getboolean("Scripts", "enable_replace"):
-            self.scripts["replace"] = replace.Replace(c["replace_enableshortcut"], c["replace_maxlength"], c["replace_cachedur"])
+            self.scripts["replace"] = replace.Replace(c["replace_enableshortcut"], c["replace_maxlength"], c["replace_maxlines"])
 
     def start(self):
         if not self.config["server"] or not self.config["channel"]:
