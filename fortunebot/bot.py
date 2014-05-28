@@ -149,14 +149,19 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         self.connection.disconnect(msg)
 
     def sendPubMsg(self, msg):
+        if not msg:
+            return
         c = self.connection
         channel = self.config["channel"]
-        if msg:
-            if type(msg) is str:
-                c.privmsg(channel, msg.decode("utf-8"))
-            elif type(msg) is list:
-                for m in msg:
-                    c.privmsg(channel, m.decode("utf-8"))
+        illegal = ""
+        for ch in range(32):
+            illegal += chr(ch)
+        if type(msg) is str:
+            msg = [msg]
+        for m in msg:
+            if type(m) is str:
+                m = m.translate(None, illegal)
+                c.privmsg(channel, m.decode("utf-8"))
 
     def reconnect(self):
         for count in xrange(self.config["reconnect_tries"]):

@@ -60,7 +60,7 @@ class Replace():
             return None
         if self.enableShortcut and text[:2] == 's/':
             tokens = self.splitByUnescapedSlash(text)
-            if len(tokens) < 3:
+            if len(tokens) < 3 or not tokens[1]:
                 return None
             pattern = tokens[1]
             repl = tokens[2]
