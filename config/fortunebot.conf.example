@@ -1,7 +1,7 @@
 [Connect]
 server = irc.freenode.net
 port = 6667
-channel = #test
+channels = #test
 nickname = fortunebot
 realname = fortunebot
 reconnect_tries = 100

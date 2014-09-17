@@ -26,7 +26,7 @@ control the bot with /etc/init.d/fortunebot start, stop, reload, and restart.
 You must also configure fortunebot by renaming
 /var/lib/fortunebot/fortunebot.conf.example to fortunebot.conf, and editing
 whatever settings you want inside. Any missing settings will default to the
-same configuration in the example, EXCEPT for server and channel, which must be
+same configuration in the example, EXCEPT for server and channels, which must be
 read from the config file.
 
 If you don't have admin privileges, unfortunately you still need to find some

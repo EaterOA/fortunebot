@@ -77,7 +77,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             "replace_maxlines": 20,
             "server": "",
             "port": 6667,
-            "channel": "",
+            "channels": "",
             "nickname": "fortunebot",
             "realname": "fortunebot",
             "reconnect_tries": "100",
@@ -92,7 +92,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         pdict = {
             "server": parser.get("Connect", "server"),
             "port": parser.getint("Connect", "port"),
-            "channel": parser.get("Connect", "channel"),
+            "channels": parser.get("Connect", "channels").split(" "),
             "nickname": parser.get("Connect", "nickname"),
             "realname": parser.get("Connect", "realname"),
             "reconnect_tries": parser.getint("Connect", "reconnect_tries"),
@@ -134,8 +134,8 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             self.scripts["replace"] = replace.Replace(c["replace_enableshortcut"], c["replace_maxlength"], c["replace_maxlines"])
 
     def start(self):
-        if not self.config["server"] or not self.config["channel"]:
-            logger.error("No configurations for server and channel found!")
+        if not self.config["server"] or not self.config["channels"]:
+            logger.error("No configurations for server and channels found!")
             return
         try:
             self.connect(self.config["server"], self.config["port"], self.config["nickname"], ircname=self.config["realname"])
@@ -148,11 +148,10 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         self.config["reconnect"] = False
         self.connection.disconnect(msg)
 
-    def sendPubMsg(self, msg):
+    def send_pubmsg(self, channel, msg):
         if not msg:
             return
         c = self.connection
-        channel = self.config["channel"]
         illegal = ""
         for ch in range(32):
             illegal += chr(ch)
@@ -185,19 +184,20 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
     def on_welcome(self, c, e):
         logger.info("Connected to server")
         self.pollThread.start()
-        c.join(self.config["channel"])
+        for ch in self.config["channels"]:
+            c.join(ch)
 
     def on_poll(self):
         c = self.connection
-        channel = self.config["channel"]
         for name, s in self.scripts.iteritems():
             if "on_poll" in dir(s):
-                try:
-                    msg = s.on_poll()
-                except Exception as e:
-                    logger.warning("{0} script error during on_poll: {1}".format(name, e))
-                    msg = None
-                self.sendPubMsg(msg)
+                for ch in self.config["channels"]:
+                    try:
+                        msg = s.on_poll(ch)
+                    except Exception as e:
+                        logger.warning("{0} script error during on_poll for {1}: {2}".format(name, ch, e))
+                        msg = None
+                    self.send_pubmsg(ch, msg)
 
     def on_privmsg(self, c, e):
         pass
@@ -213,7 +213,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
                 except Exception as e:
                     logger.warning("{0} script error during on_pubmsg: {1}".format(name, e))
                     msg = None
-                self.sendPubMsg(msg)
+                self.send_pubmsg(channel, msg)
 
     def _process_forever(self, timeout=0.2):
         """
