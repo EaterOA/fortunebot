@@ -28,9 +28,10 @@ class BotHelp():
         elif script == "markov":
             msg = "Call fortunebot's name, and it shall respond"
         elif script == "remind":
-            msg = "!remind [-m|-h|-d] <time> <target> <message> - Notify "\
-                  "target with message after a certain time. -m, -h, or "\
-                  "-d specifies that the time is in minutes, hours, or days"
+            msg = "!remind [-s|-m|-h|-d] <time> <message> - Schedule a "\
+                  "message to be announced after a certain time. -s, -m, -h, "\
+                  "or -d specifies the time to be in seconds, minutes, hours, "\
+                  "or days (if no option, defaults to seconds)"
         elif script == "replace":
             msg = "!replace [-l <line> | -s] <pattern> <replacement> - "\
             "Replace pattern from your previous message with replacement. "\
