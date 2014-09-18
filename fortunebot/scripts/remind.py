@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 
+"""
+remind.py
+
+A script that stores messages on behalf of users and plays them back after a
+specified duration.
+"""
+
 import shlex
 import time
 from collections import defaultdict, deque

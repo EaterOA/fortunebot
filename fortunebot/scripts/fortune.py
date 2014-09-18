@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 
+"""
+fortune.py
+
+A script that tells fortune messages, using the system's fortune command.
+"""
+
 from threading import Timer
 from subprocess import Popen, PIPE, STDOUT
 import re

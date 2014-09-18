@@ -3,7 +3,7 @@
 
 """
 Entry class into fortunebot. Sets up basic logging, handles file paths,
-and daemonizes the process if necessary
+and daemonizes the process if necessary.
 """
 
 import os

@@ -1,5 +1,13 @@
 # -*- coding: utf-8 -*-
 
+"""
+markov.py
+
+A script that listens to and records conversations in irc channels. When
+somebody says a magic word, the script generates a markov chain response using
+the recorded conversations as base.
+"""
+
 import random
 from collections import Counter, deque
 

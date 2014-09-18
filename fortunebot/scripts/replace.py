@@ -1,5 +1,14 @@
 # -*- coding: utf-8 -*-
 
+"""
+replace.py
+
+A script that helps users amend their previous message using regular
+expression. If the shortcut configuration is set, the script will trigger on
+"s/<pattern>/<replacement>" messages, and produce a corrected version of the
+user's previous message.
+"""
+
 import time
 import re
 import shlex

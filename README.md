@@ -1,19 +1,36 @@
 # What #
 
-An IRC bot written for the UCLA Linux User Group, #lug@irc.gimp.net. 
+A single-server IRC bot with a semi-modular script plug-in system.
 
-Accepts these commands:
-- !insult - Insults you elegantly
-- !fortune - Outputs a short UNIX fortune cookie
-- !8ball - Gives a magic 8-ball response
-- !weather - Provides weather information about a specified zipcode
-- !remind - Allows users to set reminders for themselves
-- !replace - Allows users to correct their most recent message
+It comes with these functions configured by default:
+
+- !help [command]
+  - Prints out help messages to the channel about what scripts there are
+- !insult
+  - Prints a shakespearean insult
+- !w <zip code>
+  - Prints information about the weather at zip code
+  - Zip code defaults to 90024 (Los Angeles)
+- !fortune [category]
+  - Prints a short fortune, optionally of a specified category
+- !8ball [question]
+  - Prints a random magic 8-ball reply
+- !remind [-s|m|-h|-d] <time> <message>
+  - Schedule a message to be announced after a certain time
+  - -s, -m, -h, or -d specifies the time to be in seconds, minutes, hours, or
+    days
+- !replace [-l <line> | -s] <pattern> <replacement>
+  - Replace pattern in a user's previous message with replacement
+  - Sort of like sed. In fact, it can also be triggered by
+    s/<pattern>/<replacement>
+  - The -l or --line option allows you specify which line to replace
+  - The -s option tells replace to search backwards and edit the most
+    recent line in which the pattern matches something
 
 If you call its nickname in a public message, it will respond with a markov
-chain generated reply
+chain generated reply.
 
-Very useful stuff, especially the insult.
+Clearly very useful stuff, especially the insult.
 
 # Install #
 
@@ -25,9 +42,9 @@ control the bot with /etc/init.d/fortunebot start, stop, reload, and restart.
 
 You must also configure fortunebot by renaming
 /var/lib/fortunebot/fortunebot.conf.example to fortunebot.conf, and editing
-whatever settings you want inside. Any missing settings will default to the
-same configuration in the example, EXCEPT for server and channels, which must be
-read from the config file.
+whatever settings you want inside. All settings under Connect must be present,
+but the Script settings are not critical. Any missing settings for a particular
+script will simply prevent that script from loading.
 
 If you don't have admin privileges, unfortunately you still need to find some
 way to install the fortunebot python package. virtualenv works great. After you

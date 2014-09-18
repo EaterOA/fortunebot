@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 
+"""
+insult.py
+
+A script that produces Shakespearean insults. It pulls insults via HTTP from
+Chris Seidel's Shakespearean Insulter website.
+"""
+
 import urllib
 import re
 

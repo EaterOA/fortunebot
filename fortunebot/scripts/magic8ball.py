@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 
+"""
+magic8ball.py
+
+A script that produces random magic 8 ball responses.
+"""
+
 import random
 
 class Magic8Ball():

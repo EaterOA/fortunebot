@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 
+"""
+bothelp.py
+
+A script used to store help messages about other scripts.
+"""
+
 class BotHelp():
 
     NAME = "help"

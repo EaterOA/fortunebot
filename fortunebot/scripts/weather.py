@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 
+"""
+weather.py
+
+A script that tells the weather. Uses the World Weather Online API.
+"""
+
 import urllib
 import json
 

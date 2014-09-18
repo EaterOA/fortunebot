@@ -2,37 +2,11 @@
 # -*- coding: utf-8 -*-
 
 """
-The known commands are:
+bot.py
 
-    !help [command]
-    -- Prints out help messages to the channel
-
-    !insult
-    --  Prints a shakespearean insult
-
-    !w <zip code>
-    --  Prints information about the weather at zip code. Zip code defaults
-        to 90024 (Los Angeles)
-
-    !fortune [category]
-    --  Prints a short fortune, optionally of a specified category
-
-    !8ball
-    --  Prints a random magic 8-ball reply
-
-    !remind [-m|-h|-d] <time> <target> <message>
-    --  Notify target with message after a certain time. Use options -m,
-        -h, or -d to specify time in minutes, hours, or days
-
-    !replace [-l <line> | -s] <pattern> <replacement>
-    -- Replace pattern in user's most recent message with replacement
-       The -l or --line option allows you specify which line to replace
-       The -s option tells replace to search backwards and edit the most
-       recent line in which the pattern matches something
-
-    If you call the bot's nickname, it will respond with a markov-chain-
-    generated response
-
+The main bot engine, a subclass of irclib's SingleServerIRCBot. It's fitted
+with a configuration system, dynamic script plug-in system, and slightly
+enhanced basic IRC event handling (reconnects, etc).
 """
 
 import select
@@ -185,9 +159,6 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         nick = e.source.nick
         channel = e.target
         text = e.arguments[0].encode('utf-8')
-
-        # Handle help
-
 
         # Invoke scripts
         for name, s in self.scripts.iteritems():
