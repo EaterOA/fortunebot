@@ -13,6 +13,8 @@ class Weather(object):
 
     NAME = "weather"
     PARAMS = [("str", "key")]
+    HELP = "!w [zip code] - Provides weather information about the location "  \
+           "specified by the zip code. Defaults to searching 90024 (LA)."
 
     def __init__(self, key):
         if not key:

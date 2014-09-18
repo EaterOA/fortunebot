@@ -17,6 +17,7 @@ class Markov(object):
     PARAMS = [("str", "path"),
               ("bool", "listen"),
               ("str", "respond")]
+    HELP = "Call fortunebot's name, and it shall respond..."
 
     def __init__(self, path, listen, respond):
         self.listen = listen

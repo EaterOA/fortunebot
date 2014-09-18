@@ -21,6 +21,11 @@ class Replace(object):
     PARAMS = [("bool", "shortcut"),
               ("int", "maxlength"),
               ("int", "maxlines")]
+    HELP = "!replace [-l <line> | -s] <pattern> <replacement> - Replace "      \
+           "pattern from your previous message with replacement. Use the -l "  \
+           "flag to select a specific past line, or -s to find the most "      \
+           "recent line to which pattern applies to. Also triggered by "       \
+           "s/<pattern>/<replacement>/[line][s]"
 
     def __init__(self, shortcut, maxlength, maxlines):
         self.shortcut = shortcut

@@ -18,6 +18,10 @@ class Remind(object):
     NAME = "remind"
     PARAMS = [("int", "tasklimit"),
               ("int", "durlimit")]
+    HELP = "!remind [-s|-m|-h|-d] <time> <message> - Schedule a message to be "\
+           "announced after a certain time. -s, -m, -h, or -d specifies the "  \
+           "time to be in seconds, minutes, hours, or days (if no option, "    \
+           "defaults to days)"
 
     def __init__(self, tasklimit, durlimit):
         self.durlimit = durlimit

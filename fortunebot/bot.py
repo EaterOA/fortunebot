@@ -21,17 +21,23 @@ from fortunebot.utils import EasyConfigParser, RepeatingThread
 import fortunebot.scripts
 
 class FortuneBot(irc.bot.SingleServerIRCBot):
+
     def __init__(self, confpaths):
         super(FortuneBot, self).__init__([], "", "")
         self.config = {}
         self.scripts = {}
+        self.help_msg = {}
         self.loadConfig(confpaths)
         self.pollThread = RepeatingThread(1.0, 0.0, 0, self.on_poll)
         self.exit = False
 
     def loadConfig(self, confpaths):
-
         logger.info("Loading config from {0}".format(", ".join(confpaths)))
+
+        # Reset configurations
+        self.config = {}
+        self.scripts = {}
+        self.help_msg = {}
 
         # Read core settings from config file
         sections = ["Connect", "Scripts"]
@@ -52,7 +58,6 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             self.config["reconnect_interval"] = 0
 
         # Dynamically load scripts
-        self.scripts = {}
         module_names = fortunebot.scripts.__all__
         ### Get modules in scripts subpackage
         modules = [importlib.import_module("fortunebot.scripts.{0}".format(m))
@@ -81,6 +86,8 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
                         for t, p in c.PARAMS:
                             params[p] = pfuncs[t]("Scripts", "{0}_{1}"
                                                   .format(c.NAME, p))
+                    if "HELP" in dir(c):
+                        self.help_msg[c.NAME] = c.HELP
                     self.scripts[c.NAME] = c(**params)
             except Exception as e:
                 logger.warning("Script {0} initialization error: {1}".format(c.NAME, e))
@@ -100,7 +107,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         self.config["reconnect"] = False
         self.connection.disconnect(msg)
 
-    def send_pubmsg(self, channel, msg):
+    def send_msg(self, channel, msg):
         if not msg:
             return
         c = self.connection
@@ -148,10 +155,35 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
                     except Exception as e:
                         logger.warning("{0} script error during on_poll for {1}: {2}".format(name, ch, e))
                         msg = None
-                    self.send_pubmsg(ch, msg)
+                    self.send_msg(ch, msg)
+
+    def parse_help(self, text):
+        msg = None
+        if text.startswith("!help"):
+            args = text.split(None, 1)
+            script = args[1] if len(args) > 1 else None
+            if script:
+                if script not in self.scripts:
+                    msg = "\"{0}\" unknown or inactive".format(script)
+                elif script not in self.help_msg:
+                    msg = "No help messages defined for {0}!".format(script)
+                else:
+                    msg = self.help_msg[script]
+            else:
+                msg = "!help [script] - Active scripts: "
+                msg += ", ".join(self.scripts.keys())
+        return msg
 
     def on_privmsg(self, c, e):
-        pass
+
+        # Extract info
+        nick = e.source.nick
+        text = e.arguments[0].encode('utf-8')
+
+        # Handle help
+        help_msg = self.parse_help(text)
+        if help_msg:
+            self.send_msg(nick, help_msg)
 
     def on_pubmsg(self, c, e):
 
@@ -159,6 +191,11 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         nick = e.source.nick
         channel = e.target
         text = e.arguments[0].encode('utf-8')
+
+        # Handle help
+        help_msg = self.parse_help(text)
+        if help_msg:
+            self.send_msg(channel, help_msg)
 
         # Invoke scripts
         for name, s in self.scripts.iteritems():
@@ -168,7 +205,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
                 except Exception as ex:
                     logger.warning("{0} script error during on_pubmsg: {1}".format(name, ex))
                     msg = None
-                self.send_pubmsg(channel, msg)
+                self.send_msg(channel, msg)
 
     def _process_forever(self, timeout=0.2):
         """

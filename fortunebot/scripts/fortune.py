@@ -14,6 +14,8 @@ class Fortune(object):
 
     NAME = "fortune"
     PARAMS = [('int', "length")]
+    HELP = "!fortune [category] - Receive a fortune cookie from an optional "\
+           "category"
 
     def __init__(self, length):
         if length < 0:

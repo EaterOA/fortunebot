@@ -13,6 +13,7 @@ import re
 class Insult(object):
 
     NAME = "insult"
+    HELP = "!insult - Insults you elegantly"
 
     def __init__(self):
         pass

@@ -11,6 +11,7 @@ import random
 class Magic8Ball(object):
 
     NAME = "8ball"
+    HELP = "!8ball [question] - Seek answer from the magic 8-ball"
 
     def __init__(self):
         self.messages = ["It is certain", "It is decidedly so",
