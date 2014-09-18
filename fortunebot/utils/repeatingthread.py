@@ -1,13 +1,15 @@
 """
-A subclass of threading.Thread that provides the simple capability of
-repeating the given function
+repeatingthread.py
+
+A clone of threading.Thread that provides the simple capability of repeating
+the given function.
 
 Basically a better version of threading.Timer
 """
 
 import threading
 
-class RepeatingThread():
+class RepeatingThread(object):
 
     def __init__(self, interval, delay, instances, function, *args, **kwargs):
         self.interval = interval

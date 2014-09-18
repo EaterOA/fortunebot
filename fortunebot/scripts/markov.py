@@ -11,13 +11,13 @@ the recorded conversations as base.
 import random
 from collections import Counter, deque
 
-class Markov():
+class Markov(object):
 
     NAME = "markov"
     PARAMS = [("str", "path"),
               ("bool", "listen"),
               ("str", "respond")]
-    
+
     def __init__(self, path, listen, respond):
         self.listen = listen
         self.respond = respond
@@ -70,18 +70,18 @@ class Markov():
                 self.table[2][key2b] = (Counter(), Counter())
             self.table[2][key2b][0][before] += 1
             self.table[2][key2a][1][after] += 1
-           
+
     def _initTable(self, path):
         try:
             f = open(path)
-        except IOError as e:
+        except IOError:
             return
         data = f.read()
         lines = data.split('\n')
         for line in lines:
             if self.respond not in line:
                 self._addLine(line)
-        
+
     def _triples(self, line):
         if not line:
             return
@@ -116,7 +116,7 @@ class Markov():
             if chainableKeywords:
                 res = random.choice(chainableKeywords)
                 keywords.remove(res)
-                return res 
+                return res
         endChance = (c[None] * endMult) / sum(c.values())
         if random.random() < endChance:
             return None
@@ -138,7 +138,7 @@ class Markov():
         Expand left
         """
         left = self.getWord(base, keywords, True, 1, 0)
-        if left: 
+        if left:
             sentence.appendleft(left)
             for mult in range(self.endMult, 200, self.endMult):
                 pair = (sentence[0], sentence[1])
@@ -167,5 +167,5 @@ class Markov():
         while keywords and len(msg) < self.expandLimit and random.random() < self.sentenceChance:
             msg += '. '
             msg += self.generateSentence(keywords)
-        return msg 
-            
+        return msg
+

@@ -9,14 +9,13 @@ expression. If the shortcut configuration is set, the script will trigger on
 user's previous message.
 """
 
-import time
 import re
 import shlex
 from fortunebot.utils import UndeadArgumentParser
 from argparse import ArgumentError
 from collections import deque
 
-class Replace():
+class Replace(object):
 
     NAME = "replace"
     PARAMS = [("bool", "shortcut"),
@@ -30,8 +29,10 @@ class Replace():
         self.cache = {}
 
     def squeeze(self, num, left, right):
-        if num < left: return left
-        if num > right: return right
+        if num < left:
+            return left
+        if num > right:
+            return right
         return num
 
     def findUnescapedSlash(self, text):
@@ -84,7 +85,7 @@ class Replace():
             return [pattern, repl, line, search]
         args = text.split()
         if args[0] == "!replace":
-            sargs = shlex.split(" ".join(args[1:])) 
+            sargs = shlex.split(" ".join(args[1:]))
             parser = UndeadArgumentParser(add_help=False)
             parser.add_argument("pattern")
             parser.add_argument("repl")
@@ -93,12 +94,11 @@ class Replace():
             pargs = parser.parse_args(sargs)
             return [pargs.pattern, pargs.repl, pargs.line, pargs.search]
         return None
-            
 
     def on_pubmsg(self, nick, channel, text):
         try:
             args = self.parseArgs(text)
-        except ArgumentError as e:
+        except ArgumentError:
             return "Syntax: !replace [-l <line> | -s] <pattern> <repl>"
         if not args:
             if nick not in self.cache:
@@ -128,9 +128,9 @@ class Replace():
             message = self.cache[nick][line]
         try:
             res = re.sub(pattern, repl, message)
-        except re.error as e:
+        except re.error:
             return "But {0}, that's not valid regex!".format(nick)
         # Limit length to prevent abuse
         if len(res) > self.maxlength:
             res = res[:self.maxlength] + "[...]"
-        return "{0} meant: {1}".format(nick, res) 
+        return "{0} meant: {1}".format(nick, res)

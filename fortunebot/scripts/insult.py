@@ -10,7 +10,7 @@ Chris Seidel's Shakespearean Insulter website.
 import urllib
 import re
 
-class Insult():
+class Insult(object):
 
     NAME = "insult"
 
@@ -23,7 +23,7 @@ class Insult():
             return
         return self.getInsult()
 
-    def getInsult(self): 
+    def getInsult(self):
         insult = ""
         try:
             page = urllib.urlopen("http://www.pangloss.com/seidel/Shaker/index.html").read()

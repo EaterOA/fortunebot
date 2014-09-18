@@ -8,7 +8,7 @@ A script that produces random magic 8 ball responses.
 
 import random
 
-class Magic8Ball():
+class Magic8Ball(object):
 
     NAME = "8ball"
 

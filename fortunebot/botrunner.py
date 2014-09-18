@@ -14,13 +14,13 @@ logger = logging.getLogger("fortunebot")
 from argparse import ArgumentParser
 from fortunebot.bot import FortuneBot
 
-class FortunebotRunner():
+class FortunebotRunner(object):
     def __init__(self, daemonize, pidpath, logpath, confpath, workpath):
         self.workpath = os.path.abspath(workpath)
         try:
             os.chdir(self.workpath)
-        except Exception as e:
-            logger.error("{0}".format(e)) 
+        except Exception as ex:
+            logger.error("{0}".format(ex))
             os._exit(1)
         self.daemonize = daemonize
         self.pidpath = os.path.abspath(pidpath)
@@ -68,7 +68,7 @@ class FortunebotRunner():
             logger.error("Unable to fork into background. {0}".format(e.strerror))
             os._exit(1)
         logger.info("Forked into background")
-        
+
     def _redirectIO(self):
         """
         Redirect IO to /dev/null
@@ -79,7 +79,7 @@ class FortunebotRunner():
             See code.activestate.com/recipes/278731/
             """
             maxfd = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
-            if (maxfd == resource.RLIM_INFINITY):
+            if maxfd == resource.RLIM_INFINITY:
                 maxfd = 1024
             for fd in reversed(range(maxfd)):
                 try:
@@ -97,7 +97,7 @@ class FortunebotRunner():
             os._exit(1)
         logger.info("Redirected IO to /dev/null")
 
-    def _writepid(self):        
+    def _writepid(self):
         """
         Writing pidfile
         """
@@ -125,8 +125,8 @@ class FortunebotRunner():
         logger.info("Starting bot")
         try:
             self.bot.start()
-        except Exception as e:
-            logger.error("Bot died: {0}".format(e))
+        except Exception as ex:
+            logger.error("Bot died: {0}".format(ex))
         finally:
             self._clean()
             os._exit(1)
@@ -164,14 +164,14 @@ class FortunebotRunner():
     def sighup_handler(self, signum, frame):
         logger.info("Reloading bot configs")
         self.bot.loadConfig(self.confpaths)
-        
+
 def main():
 
     # Set up basic stream logging
     logger.setLevel(logging.DEBUG)
     streamHandler = logging.StreamHandler()
     formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
-    streamHandler.setFormatter(formatter) 
+    streamHandler.setFormatter(formatter)
     logger.addHandler(streamHandler)
 
     # Parse input

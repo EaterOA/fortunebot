@@ -9,7 +9,7 @@ A script that tells the weather. Uses the World Weather Online API.
 import urllib
 import json
 
-class Weather():
+class Weather(object):
 
     NAME = "weather"
     PARAMS = [("str", "key")]

@@ -13,7 +13,7 @@ from collections import defaultdict, deque
 from fortunebot.utils import UndeadArgumentParser
 import argparse
 
-class Remind():
+class Remind(object):
 
     NAME = "remind"
     PARAMS = [("int", "tasklimit"),

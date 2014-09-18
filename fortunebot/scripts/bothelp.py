@@ -6,7 +6,7 @@ bothelp.py
 A script used to store help messages about other scripts.
 """
 
-class BotHelp():
+class BotHelp(object):
 
     NAME = "help"
 
@@ -19,7 +19,7 @@ class BotHelp():
             return
         return self.getHelp(None if len(args) == 1 else args[1])
 
-    def getHelp(self, script): 
+    def getHelp(self, script):
         msg = ""
         if not script:
             msg = "Commands: !insult, !weather, !8ball, !fortune, !remind, !replace"

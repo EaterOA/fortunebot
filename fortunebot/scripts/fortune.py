@@ -7,10 +7,10 @@ A script that tells fortune messages, using the system's fortune command.
 """
 
 from threading import Timer
-from subprocess import Popen, PIPE, STDOUT
+from subprocess import Popen, PIPE
 import re
 
-class Fortune():
+class Fortune(object):
 
     NAME = "fortune"
     PARAMS = [('int', "length")]
@@ -31,10 +31,10 @@ class Fortune():
         if p.poll() == None:
             try:
                 p.kill()
-            except:
+            except Exception:
                 pass
 
-    def getFortune(self, category): 
+    def getFortune(self, category):
         cmd = ["fortune", "-sn", str(self.length)]
         if category:
             #Sanitize
@@ -44,10 +44,10 @@ class Fortune():
         proc = Popen(cmd, stderr=PIPE, stdout=PIPE)
         timeout = Timer(0.5, self._pkill, [proc])
         timeout.start()
-        res, err = proc.communicate()
+        res, _ = proc.communicate()
         timeout.cancel()
         if not res:
-            res = "ERROR: Fortune not found" 
+            res = "ERROR: Fortune not found"
         else:
             res = res.strip()
             res = re.sub(r"[ \t\r\n]+", " ", res)

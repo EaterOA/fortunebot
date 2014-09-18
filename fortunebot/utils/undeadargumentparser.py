@@ -1,4 +1,6 @@
 """
+undeadargumentparser.py
+
 A subclass of argparse.ArgumentParser that isn't hellbent on
 exiting just because of a parsing error
 """
