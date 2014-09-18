@@ -42,7 +42,8 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         # Read core settings from config file
         sections = ["Connect", "Scripts"]
         parser = EasyConfigParser(sections=sections)
-        parser.read(confpaths)
+        if not parser.read(confpaths):
+            raise Exception("No config files were found or successfully read")
         self.config = {
             "server": parser.get("Connect", "server"),
             "port": parser.getint("Connect", "port"),

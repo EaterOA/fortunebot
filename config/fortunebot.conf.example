@@ -13,7 +13,6 @@ enable_insult = yes
 enable_8ball = yes
 enable_fortune = yes
 enable_markov = yes
-enable_help = yes
 enable_remind = yes
 enable_replace = yes
 weather_key = YOURKEYHERE

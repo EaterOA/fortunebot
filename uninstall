@@ -1,4 +1,11 @@
 #! /bin/bash
+
+user=`whoami`
+if [ "$user" != "root" ]; then
+    echo "You must be root to run this command!" >&2
+    exit 1
+fi
+
 NAME=fortunebot
 CONFDIR=/var/lib/$NAME
 PIDDIR=/var/run/$NAME

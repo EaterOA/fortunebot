@@ -15,6 +15,7 @@ from argparse import ArgumentParser
 from fortunebot.bot import FortuneBot
 
 class FortunebotRunner(object):
+
     def __init__(self, daemonize, pidpath, logpath, confpath, workpath):
         self.workpath = os.path.abspath(workpath)
         try:
@@ -25,15 +26,19 @@ class FortunebotRunner(object):
         self.daemonize = daemonize
         self.pidpath = os.path.abspath(pidpath)
         self.logpath = os.path.abspath(logpath)
-        self.confpaths = ["/etc/fortunebot.conf",
+        self.confpaths = ["/etc/fortunebot/fortunebot.conf",
                           os.path.abspath("fortunebot.conf")]
-        if self.confpaths[-1] != os.path.abspath(confpath):
+        if os.path.abspath(confpath) not in self.confpaths:
             self.confpaths.append(os.path.abspath(confpath))
         signal.signal(signal.SIGTERM, self.sigterm_handler)
         signal.signal(signal.SIGINT, self.sigterm_handler)
         signal.signal(signal.SIGHUP, self.sighup_handler)
         signal.siginterrupt(signal.SIGHUP, False)
-        self.bot = FortuneBot(self.confpaths)
+        try:
+            self.bot = FortuneBot(self.confpaths)
+        except Exception as ex:
+            logger.error("{0}".format(ex))
+            os._exit(1)
 
     def _setupLogging(self):
         """
