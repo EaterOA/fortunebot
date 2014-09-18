@@ -5,6 +5,8 @@ import re
 
 class Insult():
 
+    NAME = "insult"
+
     def __init__(self):
         pass
 

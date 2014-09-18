@@ -7,8 +7,8 @@ import ConfigParser
 
 class EasyConfigParser(ConfigParser.RawConfigParser):
 
-    def __init__(self, defaultDict, defaultSections=[]):
-        ConfigParser.RawConfigParser.__init__(self, defaultDict)
-        for s in defaultSections:
+    def __init__(self, defaults={}, sections=[]):
+        ConfigParser.RawConfigParser.__init__(self, defaults)
+        for s in sections:
             self.add_section(s)
 

@@ -9,10 +9,15 @@ from collections import deque
 
 class Replace():
 
-    def __init__(self, enableShortcut, maxLength, maxLines):
-        self.enableShortcut = enableShortcut
-        self.maxLength = maxLength
-        self.maxLines = maxLines
+    NAME = "replace"
+    PARAMS = [("bool", "shortcut"),
+              ("int", "maxlength"),
+              ("int", "maxlines")]
+
+    def __init__(self, shortcut, maxlength, maxlines):
+        self.shortcut = shortcut
+        self.maxlength = maxlength
+        self.maxlines = maxlines
         self.cache = {}
 
     def squeeze(self, num, left, right):
@@ -58,7 +63,7 @@ class Replace():
     def parseArgs(self, text):
         if len(text) < 4:
             return None
-        if self.enableShortcut and text[:2] == 's/':
+        if self.shortcut and text[:2] == 's/':
             tokens = self.splitByUnescapedSlash(text)
             if len(tokens) < 3 or not tokens[1]:
                 return None
@@ -89,7 +94,7 @@ class Replace():
         if not args:
             if nick not in self.cache:
                 self.cache[nick] = deque()
-            while len(self.cache[nick]) >= self.maxLines:
+            while len(self.cache[nick]) >= self.maxlines:
                 self.cache[nick].pop()
             self.cache[nick].appendleft(text)
             return None
@@ -117,6 +122,6 @@ class Replace():
         except re.error as e:
             return "But {0}, that's not valid regex!".format(nick)
         # Limit length to prevent abuse
-        if len(res) > self.maxLength:
-            res = res[:self.maxLength] + "[...]"
+        if len(res) > self.maxlength:
+            res = res[:self.maxlength] + "[...]"
         return "{0} meant: {1}".format(nick, res) 

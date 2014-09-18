@@ -6,10 +6,13 @@ import re
 
 class Fortune():
 
-    def __init__(self, maxLength):
-        if maxLength < 0:
-            maxLength = 0
-        self.length = maxLength
+    NAME = "fortune"
+    PARAMS = [('int', "length")]
+
+    def __init__(self, length):
+        if length < 0:
+            length = 0
+        self.length = length
 
     def on_pubmsg(self, nick, channel, text):
         args = text.split()

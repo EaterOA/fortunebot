@@ -39,99 +39,77 @@ import select
 import time
 import errno
 import logging
+import importlib
+import inspect
 logger = logging.getLogger("fortunebot")
 import irc.bot
 from fortunebot.utils import EasyConfigParser, RepeatingThread
-from fortunebot.scripts import *
+import fortunebot.scripts
 
 class FortuneBot(irc.bot.SingleServerIRCBot):
     def __init__(self, confpaths):
         super(FortuneBot, self).__init__([], "", "")
-        self._getDefaults()
-        logger.info("Loading initial config from {0}".format(", ".join(confpaths)))
+        self.config = {}
+        self.scripts = {}
         self.loadConfig(confpaths)
         self.pollThread = RepeatingThread(1.0, 0.0, 0, self.on_poll)
         self.exit = False
 
-    def _getDefaults(self):
-        self.config = {}
-        self.scripts = {}
-        self.defaultConfig = {
-            "enable_weather": "yes",
-            "enable_insult": "yes",
-            "enable_fortune": "yes",
-            "enable_8ball": "yes",
-            "enable_markov": "yes",
-            "enable_help": "yes",
-            "enable_remind": "yes",
-            "enable_replace": "yes",
-            "weather_key": "",
-            "markov_data": "",
-            "markov_listen": "yes",
-            "markov_respond": "fortunebot",
-            "fortune_length": 100,
-            "remind_tasklimit": 1000,
-            "remind_durlimit": 604800,
-            "replace_enableshortcut": "yes",
-            "replace_maxlength": 3600,
-            "replace_maxlines": 20,
-            "server": "",
-            "port": 6667,
-            "channels": "",
-            "nickname": "fortunebot",
-            "realname": "fortunebot",
-            "reconnect_tries": "100",
-            "reconnect_interval": 30
-        }
-
     def loadConfig(self, confpaths):
-        # Override default values with anything in config file
+
+        logger.info("Loading config from {0}".format(", ".join(confpaths)))
+
+        # Read core settings from config file
         sections = ["Connect", "Scripts"]
-        parser = EasyConfigParser(self.defaultConfig, sections)
+        parser = EasyConfigParser(sections=sections)
         parser.read(confpaths)
-        pdict = {
+        self.config = {
             "server": parser.get("Connect", "server"),
             "port": parser.getint("Connect", "port"),
             "channels": parser.get("Connect", "channels").split(" "),
             "nickname": parser.get("Connect", "nickname"),
             "realname": parser.get("Connect", "realname"),
             "reconnect_tries": parser.getint("Connect", "reconnect_tries"),
-            "reconnect_interval": parser.getint("Connect", "reconnect_interval"),
-            "weather_key": parser.get("Scripts", "weather_key"),
-            "fortune_length": parser.getint("Scripts", "fortune_length"),
-            "markov_data": parser.get("Scripts", "markov_data"),
-            "markov_listen": parser.getboolean("Scripts", "markov_listen"),
-            "markov_respond": parser.get("Scripts", "markov_respond"),
-            "remind_tasklimit": parser.getint("Scripts", "remind_tasklimit"),
-            "remind_durlimit": parser.getint("Scripts", "remind_durlimit"),
-            "replace_enableshortcut": parser.getboolean("Scripts", "replace_enableshortcut"),
-            "replace_maxlength": parser.getint("Scripts", "replace_maxlength"),
-            "replace_maxlines": parser.getint("Scripts", "replace_maxlines")
+            "reconnect_interval": parser.getint("Connect", "reconnect_interval")
         }
-        c = self.config
-        c.update(pdict)
-        if c["reconnect_tries"] < 0:
-            c["reconnect_tries"] = 0
-        if c["reconnect_interval"] < 0:
-            c["reconnect_interval"] = 0
-        #Load scripts with config
+        if self.config["reconnect_tries"] < 0:
+            self.config["reconnect_tries"] = 0
+        if self.config["reconnect_interval"] < 0:
+            self.config["reconnect_interval"] = 0
+
+        # Dynamically load scripts
         self.scripts = {}
-        if parser.getboolean("Scripts", "enable_insult"):
-            self.scripts["insult"] = insult.Insult()
-        if parser.getboolean("Scripts", "enable_weather"):
-            self.scripts["weather"] = weather.Weather(c["weather_key"])
-        if parser.getboolean("Scripts", "enable_fortune"):
-            self.scripts["fortune"] = fortune.Fortune(c["fortune_length"])
-        if parser.getboolean("Scripts", "enable_8ball"):
-            self.scripts["8ball"] = magic8ball.Magic8Ball()
-        if parser.getboolean("Scripts", "enable_markov"):
-            self.scripts["markov"] = markov.Markov(c["markov_data"], c["markov_listen"], c["markov_respond"])
-        if parser.getboolean("Scripts", "enable_help"):
-            self.scripts["help"] = bothelp.BotHelp()
-        if parser.getboolean("Scripts", "enable_remind"):
-            self.scripts["remind"] = remind.Remind(c["remind_tasklimit"], c["remind_durlimit"])
-        if parser.getboolean("Scripts", "enable_replace"):
-            self.scripts["replace"] = replace.Replace(c["replace_enableshortcut"], c["replace_maxlength"], c["replace_maxlines"])
+        module_names = fortunebot.scripts.__all__
+        ### Get modules in scripts subpackage
+        modules = [importlib.import_module("fortunebot.scripts.{0}".format(m))
+                   for m in module_names]
+        ### Get a valid (NAME'd) class from each module
+        classes = []
+        seen = set()
+        for m in modules:
+            for _, obj in inspect.getmembers(m):
+                if (inspect.isclass(obj) and
+                        "NAME" in dir(obj) and
+                        obj.NAME not in seen):
+                    classes.append(obj)
+                    seen.add(obj.NAME)
+                    break
+        ### Retrieve configurations and instantiate script objects
+        pfuncs = {'str': parser.get,
+                  'int': parser.getint,
+                  'float': parser.getfloat,
+                  'bool': parser.getboolean}
+        for c in classes:
+            try :
+                if parser.getboolean("Scripts", "enable_{0}".format(c.NAME)):
+                    params = {}
+                    if "PARAMS" in dir(c):
+                        for t, p in c.PARAMS:
+                            params[p] = pfuncs[t]("Scripts", "{0}_{1}"
+                                                  .format(c.NAME, p))
+                    self.scripts[c.NAME] = c(**params)
+            except Exception as e:
+                logger.warning("Script {0} initialization error: {1}".format(c.NAME, e))
 
     def start(self):
         if not self.config["server"] or not self.config["channels"]:
@@ -188,7 +166,6 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             c.join(ch)
 
     def on_poll(self):
-        c = self.connection
         for name, s in self.scripts.iteritems():
             if "on_poll" in dir(s):
                 for ch in self.config["channels"]:
@@ -203,15 +180,22 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         pass
 
     def on_pubmsg(self, c, e):
+
+        # Extract info
         nick = e.source.nick
         channel = e.target
         text = e.arguments[0].encode('utf-8')
+
+        # Handle help
+
+
+        # Invoke scripts
         for name, s in self.scripts.iteritems():
             if "on_pubmsg" in dir(s):
                 try:
                     msg = s.on_pubmsg(nick, channel, text)
-                except Exception as e:
-                    logger.warning("{0} script error during on_pubmsg: {1}".format(name, e))
+                except Exception as ex:
+                    logger.warning("{0} script error during on_pubmsg: {1}".format(name, ex))
                     msg = None
                 self.send_pubmsg(channel, msg)
 
@@ -236,10 +220,11 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             if sockets:
                 while 1:
                     try:
-                        (i, o, e) = select.select(sockets, [], [], timeout)
+                        (i, _, _) = select.select(sockets, [], [], timeout)
                         break
-                    except select.error as e:
-                        if e[0] != errno.EINTR: raise
+                    except select.error as err:
+                        if err[0] != errno.EINTR:
+                            raise
                 self.ircobj.process_data(i)
             else:
                 time.sleep(timeout)

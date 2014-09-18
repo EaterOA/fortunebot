@@ -4,6 +4,8 @@ import random
 
 class Magic8Ball():
 
+    NAME = "8ball"
+
     def __init__(self):
         self.messages = ["It is certain", "It is decidedly so",
                          "Without a doubt", "Yes definitely",

@@ -8,6 +8,10 @@ import argparse
 
 class Remind():
 
+    NAME = "remind"
+    PARAMS = [("int", "tasklimit"),
+              ("int", "durlimit")]
+
     def __init__(self, tasklimit, durlimit):
         self.durlimit = durlimit
         self.tasklimit = tasklimit

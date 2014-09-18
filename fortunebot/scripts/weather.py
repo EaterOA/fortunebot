@@ -5,12 +5,15 @@ import json
 
 class Weather():
 
-    def __init__(self, apikey):
-        if not apikey:
+    NAME = "weather"
+    PARAMS = [("str", "key")]
+
+    def __init__(self, key):
+        if not key:
             self.key = ""
         else:
             #Sanitize, because I can
-            self.key = "".join([c for c in apikey.split()[0] if c.isalnum()])
+            self.key = "".join([c for c in key.split()[0] if c.isalnum()])
 
     def on_pubmsg(self, nick, channel, text):
         args = text.split()

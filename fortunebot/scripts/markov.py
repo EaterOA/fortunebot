@@ -4,10 +4,15 @@ import random
 from collections import Counter, deque
 
 class Markov():
+
+    NAME = "markov"
+    PARAMS = [("str", "path"),
+              ("bool", "listen"),
+              ("str", "respond")]
     
-    def __init__(self, path, listen, magicWord):
+    def __init__(self, path, listen, respond):
         self.listen = listen
-        self.magicWord = magicWord
+        self.respond = respond
         self.table = [{}, {}, {}]
         self._initTable(path)
         self.endMult = 20
@@ -18,7 +23,7 @@ class Markov():
     def on_pubmsg(self, nick, channel, text):
         if not text.split():
             return
-        if self.magicWord in text:
+        if self.respond in text:
             return self.generate(text)
         elif self.listen:
             self._addLine(text)
@@ -66,7 +71,7 @@ class Markov():
         data = f.read()
         lines = data.split('\n')
         for line in lines:
-            if self.magicWord not in line:
+            if self.respond not in line:
                 self._addLine(line)
         
     def _triples(self, line):
@@ -83,7 +88,7 @@ class Markov():
     def _filterKeywords(self, text):
         keywords = []
         for word in text.split():
-            if word in self.table[1] and self.magicWord not in word:
+            if word in self.table[1] and self.respond not in word:
                 keywords.append(word)
         return keywords
 

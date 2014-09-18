@@ -2,6 +2,8 @@
 
 class BotHelp():
 
+    NAME = "help"
+
     def __init__(self):
         pass
 
