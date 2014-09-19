@@ -7,11 +7,15 @@ if [ "$user" != "root" ]; then
 fi
 
 NAME=fortunebot
+BINPATH=/usr/local/bin/$NAME
 CONFDIR=/var/lib/$NAME
 PIDDIR=/var/run/$NAME
 LOGDIR=/var/log/$NAME
 
-# Remove pidfile and logfile directories
+# Remove binaries and installation directories
+if [ -f $BINPATH ]; then
+    rm $BINPATH
+fi
 if [ -d $PIDDIR ]; then
     rm -r $PIDDIR
 fi
