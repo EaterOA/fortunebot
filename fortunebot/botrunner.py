@@ -163,6 +163,7 @@ class FortunebotRunner(object):
     def sigterm_handler(self, signum, frame):
         logger.info("Disconnecting bot...")
         self.bot.disconnect("Farewell comrades!")
+        self.bot.clean()
         self._clean()
         os._exit(0)
 

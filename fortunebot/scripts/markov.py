@@ -16,18 +16,38 @@ class Markov(object):
     NAME = "markov"
     PARAMS = [("str", "path"),
               ("bool", "listen"),
+              ("bool", "record"),
               ("str", "respond")]
     HELP = "Call fortunebot's name, and it shall respond..."
 
-    def __init__(self, path, listen, respond):
+    def __init__(self, path, listen, record, respond):
         self.listen = listen
         self.respond = respond
         self.table = [{}, {}, {}]
-        self._initTable(path)
+        self.sample_file = None
+        if path:
+            self._init_sample_file(path, record)
         self.endMult = 20
         self.expandLimit = 50
         self.sentenceChance = 0.7
         self.chainKeywordChance = 0.4
+
+    def __del__(self):
+        if self.sample_file:
+            self.sample_file.close()
+            self.sample_file = None
+
+    def _init_sample_file(self, path, record):
+        if not record:
+            self.sample_file = open(path)
+        else:
+            self.sample_file = open(path, "r+", 1) # r+w line buffered
+        for line in self.sample_file:
+            if self.respond not in line:
+                self._addLine(line)
+        if not record:
+            self.sample_file.close()
+            self.sample_file = None
 
     def on_pubmsg(self, nick, channel, text):
         if not text.split():
@@ -36,6 +56,8 @@ class Markov(object):
             return self.generate(text)
         elif self.listen:
             self._addLine(text)
+            if self.sample_file:
+                self.sample_file.write("{0}\n".format(text))
 
     def _addLine(self, line):
         for triplet in self._triples(line):
@@ -71,17 +93,6 @@ class Markov(object):
                 self.table[2][key2b] = (Counter(), Counter())
             self.table[2][key2b][0][before] += 1
             self.table[2][key2a][1][after] += 1
-
-    def _initTable(self, path):
-        try:
-            f = open(path)
-        except IOError:
-            return
-        data = f.read()
-        lines = data.split('\n')
-        for line in lines:
-            if self.respond not in line:
-                self._addLine(line)
 
     def _triples(self, line):
         if not line:

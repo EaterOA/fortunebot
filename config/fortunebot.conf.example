@@ -19,6 +19,7 @@ weather_key = YOURKEYHERE
 fortune_length = 100
 markov_path =
 markov_listen = yes
+markov_record = yes
 markov_respond = fortunebot
 remind_durlimit = 604800
 remind_tasklimit = 1000

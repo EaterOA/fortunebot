@@ -31,6 +31,10 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         self.pollThread = RepeatingThread(1.0, 0.0, 0, self.on_poll)
         self.exit = False
 
+    def clean(self):
+        for name in self.scripts.keys():
+            del self.scripts[name]
+
     def loadConfig(self, confpaths):
         logger.info("Loading config from {0}".format(", ".join(confpaths)))
 
@@ -148,7 +152,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             c.join(ch)
 
     def on_poll(self):
-        for name, s in self.scripts.iteritems():
+        for name, s in self.scripts.items():
             if "on_poll" in dir(s):
                 for ch in self.config["channels"]:
                     try:
@@ -199,7 +203,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             self.send_msg(channel, help_msg)
 
         # Invoke scripts
-        for name, s in self.scripts.iteritems():
+        for name, s in self.scripts.items():
             if "on_pubmsg" in dir(s):
                 try:
                     msg = s.on_pubmsg(nick, channel, text)
