@@ -48,8 +48,9 @@ but the Script settings are not critical. Any missing settings for a particular
 script will simply prevent that script from loading.
 
 If you don't have admin privileges, unfortunately you still need to find some
-way to install the fortunebot python package. virtualenv works great. After you
-install the package, you can run the bot by directly invoking botrunner.py.
+way to install the fortunebot python package. virtualenv works great: activate
+an environment and run `python setup.py install`. After that's done, you can
+run the bot by directly invoking botrunner.py.
 
 The above comments about configuration applies in directly invoking
 botrunner.py, except you can specify the location of the config file via

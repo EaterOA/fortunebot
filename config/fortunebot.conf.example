@@ -1,15 +1,49 @@
+##################################################
+# Core connect configurations
+# All options in this section must have a value
+##################################################
+
 [Connect]
+
+# The IRC server and port to connect to
 server = irc.freenode.net
 port = 6667
+
+# The channels to join
+# Multiple channels can be specified by delimiting by space
+# e.g. channels = #a #b #c
 channels = #test
+
+# The IRC nickname and realname to use
 nickname = fortunebot
 realname = fortunebot
+
+# Upon disconnection, the bot will try to reconnect automatically
+# reconnect_tries specifies the attempt limit, after which the process
+# terminates
+# reconnect_interval specifies the number of seconds between each reconnect
+# attempt
 reconnect_tries = 100
 reconnect_interval = 30
+
+# To make sure it hasn't disconnected, the bot will ping the IRC server
+# periodically
+# ping_tries specifies the max number of unreciprocated pings allowed, after
+# which the bot will disconnect and begin attempting to reconnect
+# ping_interval specifies the number of seconds between each ping
 ping_tries = 10
 ping_interval = 30
 
+##################################################
+# Script-specific configurations
+# The options in this section are not required, but the absence of any
+# script-specific option will prevent that script from loading
+# Each script's option is prefixed with the script's name
+##################################################
+
 [Scripts]
+
+# Enable configurations - these directly control what scripts are enabled
 enable_weather = yes
 enable_insult = yes
 enable_8ball = yes
@@ -18,6 +52,8 @@ enable_markov = yes
 enable_remind = yes
 enable_replace = yes
 enable_burn = yes
+
+# Script-specific stuff
 weather_key = YOURKEYHERE
 fortune_length = 100
 markov_path =
