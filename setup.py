@@ -13,6 +13,6 @@ setup(name='fortunebot',
       author_email="duperduper@ucla.edu",
       license="GPL3",
       packages=["fortunebot", "fortunebot.scripts", "fortunebot.utils"],
-      install_requires=["irc", "importlib"],
+      install_requires=["irc>=11", "importlib"],
       zip_safe=False
      )

@@ -64,7 +64,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             "realname": parser.get("Connect", "realname"),
             "reconnect_tries": parser.getint("Connect", "reconnect_tries"),
             "reconnect_interval": parser.getint("Connect", "reconnect_interval"),
-            "ping_tries": parser.getint("Connect", "ping_limit"),
+            "ping_tries": parser.getint("Connect", "ping_tries"),
             "ping_interval": parser.getint("Connect", "ping_interval"),
         }
         self.config["reconnect_tries"] = max(0, self.config["reconnect_tries"])
