@@ -15,10 +15,15 @@ import errno
 import logging
 import importlib
 import inspect
-logger = logging.getLogger("fortunebot")
 import irc.bot
 from fortunebot.utils import EasyConfigParser, RepeatingThread
 import fortunebot.scripts
+logger = logging.getLogger("fortunebot")
+"""
+irclog = logging.getLogger("irc.client")
+irclog.addHandler(logging.StreamHandler())
+irclog.setLevel("DEBUG")
+"""
 
 class FortuneBot(irc.bot.SingleServerIRCBot):
 
@@ -28,7 +33,10 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         self.scripts = {}
         self.help_msg = {}
         self.loadConfig(confpaths)
-        self.pollThread = RepeatingThread(1.0, 0.0, 0, self.on_poll)
+        self.poll_thread = RepeatingThread(1.0, 0.0, 0, self.on_poll)
+        self.ping_interval = 30
+        self.ping_counter = 0
+        self.ping_ignored = 0
         self.exit = False
 
     def clean(self):
@@ -131,14 +139,15 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             logger.info("Reconnecting to server (try #{0})...".format(count+1))
             self.connection.reconnect()
             time.sleep(self.config["reconnect_interval"])
-            if self.connection.is_connected:
+            if self.connection.is_connected():
                 return
         logger.warning("Shutting down due to maximum reconnect limit")
         self.exit = True
 
     def on_disconnect(self, c, e):
         logger.info("Disconnected from server")
-        self.pollThread.cancel()
+        self.poll_thread.cancel()
+        self.ping_ignored = 0
         if self.config["reconnect_tries"]:
             self.connection.execute_delayed(self.config["reconnect_interval"], self.reconnect)
 
@@ -147,11 +156,28 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
 
     def on_welcome(self, c, e):
         logger.info("Connected to server")
-        self.pollThread.start()
+        self.poll_thread.start()
         for ch in self.config["channels"]:
             c.join(ch)
 
+    def on_pong(self, c, e):
+        self.ping_ignored = 0
+
     def on_poll(self):
+
+        # Disconnect detection
+        self.ping_counter -= 1
+        if self.ping_counter <= 0:
+            self.ping_counter = self.ping_interval
+            self.ping_ignored += 1
+            if self.ping_ignored == 6:
+                logger.warning("Server timed out after 180s, disconnecting...")
+                self.connection.disconnect()
+                return
+            else:
+                self.connection.ping(self.config["server"])
+
+        # Polling for scripts
         for name, s in self.scripts.items():
             if "on_poll" in dir(s):
                 for ch in self.config["channels"]:
