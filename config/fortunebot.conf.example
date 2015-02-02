@@ -6,6 +6,8 @@ nickname = fortunebot
 realname = fortunebot
 reconnect_tries = 100
 reconnect_interval = 30
+ping_tries = 10
+ping_interval = 30
 
 [Scripts]
 enable_weather = yes

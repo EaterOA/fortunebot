@@ -41,3 +41,6 @@ class RepeatingThread(object):
                 self.finished.set()
             elif self.instances < -1000:
                 self.instances = -1
+
+    def change_interval(self, interval):
+        self.interval = interval

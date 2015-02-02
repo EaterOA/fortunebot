@@ -32,10 +32,10 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         self.config = {}
         self.scripts = {}
         self.help_msg = {}
+        self.ping_thread = None
         self.loadConfig(confpaths)
         self.poll_thread = RepeatingThread(1.0, 0.0, 0, self.on_poll)
-        self.ping_interval = 30
-        self.ping_counter = 0
+        self.ping_thread = RepeatingThread(self.config["ping_interval"], 0.0, 0, self.probe_connection)
         self.ping_ignored = 0
         self.exit = False
 
@@ -63,12 +63,16 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             "nickname": parser.get("Connect", "nickname"),
             "realname": parser.get("Connect", "realname"),
             "reconnect_tries": parser.getint("Connect", "reconnect_tries"),
-            "reconnect_interval": parser.getint("Connect", "reconnect_interval")
+            "reconnect_interval": parser.getint("Connect", "reconnect_interval"),
+            "ping_tries": parser.getint("Connect", "ping_limit"),
+            "ping_interval": parser.getint("Connect", "ping_interval"),
         }
-        if self.config["reconnect_tries"] < 0:
-            self.config["reconnect_tries"] = 0
-        if self.config["reconnect_interval"] < 0:
-            self.config["reconnect_interval"] = 0
+        self.config["reconnect_tries"] = max(0, self.config["reconnect_tries"])
+        self.config["reconnect_interval"] = max(0, self.config["reconnect_interval"])
+        self.config["ping_tries"] = max(0, self.config["ping_tries"])
+        self.config["ping_interval"] = max(0, self.config["ping_interval"])
+        if self.ping_thread:
+            self.ping_thread.change_interval(self.config["ping_interval"])
 
         # Dynamically load scripts
         module_names = fortunebot.scripts.__all__
@@ -147,6 +151,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
     def on_disconnect(self, c, e):
         logger.info("Disconnected from server")
         self.poll_thread.cancel()
+        self.ping_thread.cancel()
         self.ping_ignored = 0
         if self.config["reconnect_tries"]:
             self.connection.execute_delayed(self.config["reconnect_interval"], self.reconnect)
@@ -157,27 +162,22 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
     def on_welcome(self, c, e):
         logger.info("Connected to server")
         self.poll_thread.start()
+        self.ping_thread.start()
         for ch in self.config["channels"]:
             c.join(ch)
+
+    def probe_connection(self):
+        self.ping_ignored += 1
+        if self.ping_ignored == self.config["ping_tries"]:
+            logger.warning("Ping try limit reached without response, disconnecting...")
+            self.connection.disconnect()
+        else:
+            self.connection.ping(self.config["server"])
 
     def on_pong(self, c, e):
         self.ping_ignored = 0
 
     def on_poll(self):
-
-        # Disconnect detection
-        self.ping_counter -= 1
-        if self.ping_counter <= 0:
-            self.ping_counter = self.ping_interval
-            self.ping_ignored += 1
-            if self.ping_ignored == 6:
-                logger.warning("Server timed out after 180s, disconnecting...")
-                self.connection.disconnect()
-                return
-            else:
-                self.connection.ping(self.config["server"])
-
-        # Polling for scripts
         for name, s in self.scripts.items():
             if "on_poll" in dir(s):
                 for ch in self.config["channels"]:
