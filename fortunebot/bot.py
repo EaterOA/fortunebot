@@ -221,24 +221,8 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         Also added a way to end the loop
         """
         while not self.exit:
-            self._process_once(timeout)
-
-    def _process_once(self, timeout=0):
-        """
-        IRC's process_once with the fix for InterruptedSystemCall
-        """
-        with self.ircobj.mutex:
-            sockets = [x.socket for x in self.ircobj.connections if x is not None]
-            sockets = [x for x in sockets if x is not None]
-            if sockets:
-                while 1:
-                    try:
-                        (i, _, _) = select.select(sockets, [], [], timeout)
-                        break
-                    except select.error as err:
-                        if err[0] != errno.EINTR:
-                            raise
-                self.ircobj.process_data(i)
-            else:
-                time.sleep(timeout)
-            self.ircobj.process_timeout()
+            try:
+                self.reactor.process_once(timeout)
+            except select.error as err:
+                if err[0] != errno.EINTR:
+                    raise
