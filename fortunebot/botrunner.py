@@ -10,9 +10,9 @@ import os
 import signal
 import resource
 import logging
-logger = logging.getLogger("fortunebot")
 from argparse import ArgumentParser
 from fortunebot.bot import FortuneBot
+logger = logging.getLogger("fortunebot")
 
 class FortunebotRunner(object):
 
@@ -35,7 +35,7 @@ class FortunebotRunner(object):
         signal.signal(signal.SIGHUP, self.sighup_handler)
         signal.siginterrupt(signal.SIGHUP, False)
         try:
-            self.bot = FortuneBot(self.confpaths)
+            self.bot = FortuneBot()
         except Exception as ex:
             logger.error("{0}".format(ex))
             os._exit(1)
@@ -129,6 +129,7 @@ class FortunebotRunner(object):
 
         logger.info("Starting bot")
         try:
+            self.bot.load_config(self.confpaths)
             self.bot.start()
         except Exception as ex:
             logger.error("Bot died: {0}".format(ex))
@@ -169,7 +170,7 @@ class FortunebotRunner(object):
 
     def sighup_handler(self, signum, frame):
         logger.info("Reloading bot configs")
-        self.bot.loadConfig(self.confpaths)
+        self.bot.load_config(self.confpaths)
 
 def main():
 

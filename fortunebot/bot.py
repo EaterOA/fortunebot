@@ -27,15 +27,13 @@ irclog.setLevel("DEBUG")
 
 class FortuneBot(irc.bot.SingleServerIRCBot):
 
-    def __init__(self, confpaths):
+    def __init__(self):
         super(FortuneBot, self).__init__([], "", "")
         self.config = {}
         self.scripts = {}
         self.help_msg = {}
-        self.ping_thread = None
-        self.loadConfig(confpaths)
         self.poll_thread = RepeatingThread(1.0, 0.0, 0, self.on_poll)
-        self.ping_thread = RepeatingThread(self.config["ping_interval"], 0.0, 0, self.probe_connection)
+        self.ping_thread = RepeatingThread(30.0, 0.0, 0, self.probe_connection)
         self.ping_ignored = 0
         self.exit = False
 
@@ -43,7 +41,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         for name in self.scripts.keys():
             del self.scripts[name]
 
-    def loadConfig(self, confpaths):
+    def load_config(self, confpaths):
         logger.info("Loading config from {0}".format(", ".join(confpaths)))
 
         # Reset configurations
