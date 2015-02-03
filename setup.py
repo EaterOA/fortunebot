@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='fortunebot',
-      version='1.0',
+      version='1.1',
       description="IRC bot for UCLA LUG",
       classifiers=[
         'Development Status :: 3 - Alpha',

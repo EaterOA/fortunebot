@@ -57,7 +57,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         self.config = {
             "server": parser.get("Connect", "server"),
             "port": parser.getint("Connect", "port"),
-            "channels": parser.get("Connect", "channels").split(" "),
+            "channels": parser.get("Connect", "channels"),
             "nickname": parser.get("Connect", "nickname"),
             "realname": parser.get("Connect", "realname"),
             "reconnect_tries": parser.getint("Connect", "reconnect_tries"),
@@ -65,6 +65,9 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             "ping_tries": parser.getint("Connect", "ping_tries"),
             "ping_interval": parser.getint("Connect", "ping_interval"),
         }
+        self.config["channels"] = self.config["channels"].split()
+        self.config["channels"] = [c if c[0] == '#' else '#' + c
+                                   for c in self.config["channels"]]
         self.config["reconnect_tries"] = max(0, self.config["reconnect_tries"])
         self.config["reconnect_interval"] = max(0, self.config["reconnect_interval"])
         self.config["ping_tries"] = max(0, self.config["ping_tries"])

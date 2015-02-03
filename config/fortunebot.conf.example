@@ -11,8 +11,8 @@ port = 6667
 
 # The channels to join
 # Multiple channels can be specified by delimiting by space
-# e.g. channels = #a #b #c
-channels = #test
+# e.g. channels = a b c
+channels = test
 
 # The IRC nickname and realname to use
 nickname = fortunebot
