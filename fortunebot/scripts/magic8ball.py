@@ -25,7 +25,7 @@ class Magic8Ball(object):
                          "My reply is no", "My sources say no",
                          "Outlook not so good", "Very doubtful"]
 
-    def on_pubmsg(self, nick, channel, text):
+    def on_pubmsg(self, source, channel, text):
         args = text.split()
         if not args or args[0] != "!8ball":
             return

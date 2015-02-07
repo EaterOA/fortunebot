@@ -42,7 +42,7 @@ class Remind(object):
             msgList.append(t[1])
         return msgList
 
-    def on_pubmsg(self, nick, channel, text):
+    def on_pubmsg(self, source, channel, text):
         args = text.split()
         if not args or args[0] != "!remind":
             return

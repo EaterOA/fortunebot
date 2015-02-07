@@ -209,18 +209,18 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
     def on_privmsg(self, c, e):
 
         # Extract info
-        nick = e.source.nick
+        source = e.source
         text = e.arguments[0].encode('utf-8')
 
         # Handle help
         help_msg = self.parse_help(text)
         if help_msg:
-            self.send_msg(nick, help_msg)
+            self.send_msg(source, help_msg)
 
     def on_pubmsg(self, c, e):
 
         # Extract info
-        nick = e.source.nick
+        source = e.source
         channel = e.target
         text = e.arguments[0].encode('utf-8')
 
@@ -233,7 +233,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         for name, s in self.scripts.items():
             if "on_pubmsg" in dir(s):
                 try:
-                    msg = s.on_pubmsg(nick, channel, text)
+                    msg = s.on_pubmsg(source, channel, text)
                 except Exception as ex:
                     logger.warning("{0} script error during on_pubmsg: {1}".format(name, ex))
                     msg = None

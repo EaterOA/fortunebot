@@ -23,7 +23,7 @@ class Weather(object):
             #Sanitize, because I can
             self.key = "".join([c for c in key.split()[0] if c.isalnum()])
 
-    def on_pubmsg(self, nick, channel, text):
+    def on_pubmsg(self, source, channel, text):
         args = text.split()
         if not args or args[0] not in ["!w", "!weather"]:
             return

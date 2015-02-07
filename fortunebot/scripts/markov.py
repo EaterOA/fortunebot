@@ -49,7 +49,7 @@ class Markov(object):
             self.sample_file.close()
             self.sample_file = None
 
-    def on_pubmsg(self, nick, channel, text):
+    def on_pubmsg(self, source, channel, text):
         if not text.split():
             return
         if self.respond in text:

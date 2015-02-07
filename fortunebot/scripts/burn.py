@@ -15,7 +15,7 @@ class Burn(object):
     def __init__(self, words):
         self.words = words.split()
 
-    def on_pubmsg(self, nick, channel, text):
+    def on_pubmsg(self, source, channel, text):
         text = text.lower()
         for w in self.words:
             d = text.find(w)

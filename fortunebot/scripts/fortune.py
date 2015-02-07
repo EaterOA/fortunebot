@@ -22,7 +22,7 @@ class Fortune(object):
             length = 0
         self.length = length
 
-    def on_pubmsg(self, nick, channel, text):
+    def on_pubmsg(self, source, channel, text):
         args = text.split()
         if not args or args[0] != "!fortune":
             return

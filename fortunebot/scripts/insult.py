@@ -18,7 +18,7 @@ class Insult(object):
     def __init__(self):
         pass
 
-    def on_pubmsg(self, nick, channel, text):
+    def on_pubmsg(self, source, channel, text):
         args = text.split()
         if not args or args[0] != "!insult":
             return

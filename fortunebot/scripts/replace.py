@@ -100,11 +100,12 @@ class Replace(object):
             return [pargs.pattern, pargs.repl, pargs.line, pargs.search]
         return None
 
-    def on_pubmsg(self, nick, channel, text):
+    def on_pubmsg(self, source, channel, text):
         try:
             args = self.parseArgs(text)
         except ArgumentError:
             return "Syntax: !replace [-l <line> | -s] <pattern> <repl>"
+        nick = source.nick
         if not args:
             if nick not in self.cache:
                 self.cache[nick] = deque()
