@@ -24,20 +24,39 @@ class Weather(object):
             self.key = "".join([c for c in key.split()[0] if c.isalnum()])
 
     def on_pubmsg(self, source, channel, text):
+        if not self.key:
+            return
         args = text.split()
         if not args or args[0] not in ["!w", "!weather"]:
             return
-        zipcode = args[1] if len(args) > 1 else "90024"
+        if len(args) > 1:
+            zipcode = args[1]
+        else:
+            zipcode = self.getZip(source.host)
+            if not zipcode:
+                return "ERROR: Unable to geolocate host; please specify zip"
         return self.getWeather(zipcode)
 
+    def getZip(self, host):
+        urlf = "https://freegeoip.net/json/{0}"
+        res = ""
+        if host:
+            try:
+                page = urllib.urlopen(urlf.format(host)).read()
+                data = json.loads(page)
+                res = data["zip_code"]
+            except (IOError, ValueError):
+                pass
+        return res
 
     def getWeather(self, zipcode):
+        urlf = "http://api.worldweatheronline.com/free/v1/weather.ashx?q={0}&format=json&fx=no&includelocation=yes&key={1}"
         res = ""
         if len(zipcode) != 5 or not zipcode.isdigit():
             res = "ERROR: Zip code is not in 5-digit format!"
         else:
             try:
-                page = urllib.urlopen("http://api.worldweatheronline.com/free/v1/weather.ashx?q={0}&format=json&fx=no&includelocation=yes&key={1}".format(zipcode, self.key)).read()
+                page = urllib.urlopen(urlf.format(zipcode, self.key)).read()
                 wdata = json.loads(page)["data"]
                 if "error" in wdata:
                     res = "ERROR: No data found for {0}!".format(zipcode)
