@@ -131,7 +131,10 @@ class Replace(object):
             else:
                 message = self.cache[nick][0]
         else:
-            message = self.cache[nick][line]
+            try:
+                message = self.cache[nick][line-1]
+            except Exception:
+                return "Invalid line number"
         try:
             res = re.sub(pattern, repl, message)
         except re.error:
