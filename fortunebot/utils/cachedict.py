@@ -26,8 +26,7 @@ class CacheDict(collections.MutableMapping):
         if key in self.store:
             del self[key]
         if self.limit > 0 and len(self.store) >= self.limit:
-            minkey = min(self.timestore, key=lambda k: self.timestore[k])
-            del self[minkey]
+            del self[self.timestore[0][0]]
         self.store[key] = val
         self.timestore.append((key, curtime))
 
