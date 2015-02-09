@@ -43,28 +43,55 @@ ping_interval = 30
 
 [Scripts]
 
-# Enable configurations - these directly control what scripts are enabled
-enable_weather = yes
-enable_insult = yes
-enable_8ball = yes
-enable_fortune = yes
-enable_markov = yes
-enable_remind = yes
-enable_replace = yes
-enable_burn = yes
 
-# Script-specific stuff
+##### Weather
+# key: API key for worldweatheronline
+# cachedur: How long to cache geolocation results and zip code data
+# setlimit: How many people are allowed to set zip codes (-1 for unlimited)
+enable_weather = yes
 weather_key =
 weather_cachedur = 300
 weather_setlimit = 100
+
+##### Insult
+enable_insult = yes
+
+##### 8ball
+enable_8ball = yes
+
+##### Fortune
+# length: Longest fortune length allowed
+enable_fortune = yes
 fortune_length = 100
+
+##### Markov
+# path: Path of file to serve as initial corpus
+# listen: Toggle growing corpus by logging new messages
+# record: Toggle recording new messages back into corpus file
+# respond: Word to respond to with markov-generated text
+enable_markov = yes
 markov_path =
 markov_listen = yes
 markov_record = yes
 markov_respond = fortunebot
+
+##### Remind
+# durlimit: Limit of how far into the future bot is willing to remind
+# tasklimit: Maximum number of tasks that can be set
+enable_remind = yes
 remind_durlimit = 604800
 remind_tasklimit = 1000
+
+##### Replace
+# shortcut: Enable the s// syntax to trigger script
+# maxlength: Maximum length of replaced output text
+# maxlines: Maximum number of lines to remember for each user
+enable_replace = yes
 replace_shortcut = yes
 replace_maxlength = 200
 replace_maxlines = 20
+
+##### Burn
+# words: String to respond to with burn message
+enable_burn = yes
 burn_words = your face

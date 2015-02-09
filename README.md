@@ -8,9 +8,10 @@ It comes with these functions configured by default:
   - Prints out help messages to the channel about what scripts there are
 - `!insult`
   - Prints a shakespearean insult
-- `!w [zip code]`
+- `!w [-s <save_zipcode>] [query_zipcode]`
   - Prints information about the weather at zip code
-  - Zip code defaults to 90024 (Los Angeles)
+  - Will attempt to geolocate user if no zip code is specified
+  - Allows tying a zipcode to user via the -s switch
 - `!fortune [category]`
   - Prints a short fortune, optionally of a specified category
 - `!8ball [question]`

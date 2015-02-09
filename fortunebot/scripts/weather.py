@@ -18,8 +18,10 @@ class Weather(object):
     PARAMS = [("str", "key"),
               ("int", "cachedur"),
               ("int", "setlimit")]
-    HELP = "!w [zip code] - Provides weather information about the location "  \
-           "specified by the zip code. Defaults to searching 90024 (LA)."
+    HELP = "!w [-s <save_zipcode>] [query_zipcode] - Provides weather " \
+           "information about the location specified by query_zipcode. If " \
+           "unspecified, will attempt to geolocate user. Can also save a " \
+           "zipcode using the -s switch."
 
     def __init__(self, key, cachedur, setlimit):
         if not key:
