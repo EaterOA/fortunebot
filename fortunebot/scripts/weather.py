@@ -8,9 +8,8 @@ A script that tells the weather. Uses the World Weather Online API.
 
 import urllib
 import json
-import time
 import shlex
-from fortunebot.utils import UndeadArgumentParser
+from fortunebot.utils import UndeadArgumentParser, CacheDict
 from argparse import ArgumentError
 
 class Weather(object):
@@ -28,11 +27,9 @@ class Weather(object):
         else:
             #Sanitize, because I can
             self.key = "".join([c for c in key.split()[0] if c.isalnum()])
-        self.cachedur = cachedur
-        self.setlimit = setlimit
-        self.zipcache = {}
-        self.hostcache = {}
-        self.setcache = {}
+        self.zipcache = CacheDict(duration=cachedur)
+        self.hostcache = CacheDict(duration=cachedur)
+        self.setcache = CacheDict(limit=setlimit)
 
     def on_pubmsg(self, source, channel, text):
         if not self.key:
@@ -49,7 +46,7 @@ class Weather(object):
         zipcode = args.zipcode
         if not zipcode:
             if source.nick in self.setcache:
-                zipcode = self.setcache[source.nick][1]
+                zipcode = self.setcache[source.nick]
             elif source.host:
                 zipcode = self.getZip(source.host)
             if not zipcode:
@@ -67,22 +64,16 @@ class Weather(object):
         return parser.parse_args(sargs)
 
     def setZip(self, nick, zipcode):
-        if self.setlimit == 0:
-            return None
         if not self.validZip(zipcode):
             return "Zip code is not in 5-digit format!"
-        if (nick not in self.setcache
-                and self.setlimit <= len(self.setcache)):
-            min_key = min(self.setcache, key=lambda k: self.setcache[k][0])
-            del self.setcache[min_key]
-        self.setcache[nick] = (int(time.time()), zipcode)
+        self.setcache[nick] = zipcode
 
     def validZip(self, zipcode):
         return len(zipcode) == 5 and zipcode.isdigit()
 
     def getZip(self, host):
         if host in self.hostcache:
-            return self.hostcache[host][1]
+            return self.hostcache[host]
         url = "https://freegeoip.net/json/{0}".format(host)
         res = ""
         try:
@@ -91,14 +82,14 @@ class Weather(object):
             res = data["zip_code"]
         except (IOError, ValueError):
             pass
-        self.hostcache[host] = (int(time.time()) + self.cachedur, res)
+        self.hostcache[host] = res
         return res
 
     def getWeather(self, zipcode):
         if not self.validZip(zipcode):
             return "Zip code is not in 5-digit format!"
         if zipcode in self.zipcache:
-            return self.zipcache[zipcode][1]
+            return self.zipcache[zipcode]
         url = "http://api.worldweatheronline.com/free/v1/weather.ashx?q={0}&format=json&fx=no&includelocation=yes&key={1}".format(zipcode, self.key)
         res = ""
         try:
@@ -119,18 +110,9 @@ class Weather(object):
         except (IOError, ValueError):
             # Don't cache connection failures
             return "Unable to connect to weather API!"
-        self.zipcache[zipcode] = (int(time.time()) + self.cachedur, res)
+        self.zipcache[zipcode] = res
         return res
 
     def on_poll(self, channel):
-        self.prune(self.zipcache)
-        self.prune(self.hostcache)
-
-    def prune(self, cache):
-        cur = int(time.time())
-        toggle_list = []
-        for k, v in cache.items():
-            if cur >= v[0]:
-                toggle_list.append(k)
-        for k in toggle_list:
-            del cache[k]
+        self.zipcache.prune()
+        self.hostcache.prune()
