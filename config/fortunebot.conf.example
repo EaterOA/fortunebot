@@ -56,6 +56,7 @@ enable_burn = yes
 # Script-specific stuff
 weather_key =
 weather_cachedur = 300
+weather_setlimit = 100
 fortune_length = 100
 markov_path =
 markov_listen = yes
