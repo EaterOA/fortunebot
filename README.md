@@ -27,6 +27,8 @@ It comes with these functions configured by default:
   - The -l or --line option allows you specify which line to replace
   - The -s option tells replace to search backwards and edit the most
     recent line in which the pattern matches something
+- `!choose [options...]`
+  - Will choose for you
 
 If you call its nickname in a public message, it will respond with a markov
 chain generated reply.
