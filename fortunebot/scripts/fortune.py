@@ -27,7 +27,7 @@ class Fortune(object):
         if not args or args[0] != "!fortune":
             return
         category = args[1] if len(args) > 1 else None
-        return self.getFortune(category)
+        return self.get_fortune(category)
 
     def _pkill(self, p):
         if p.poll() == None:
@@ -36,7 +36,7 @@ class Fortune(object):
             except Exception:
                 pass
 
-    def getFortune(self, category):
+    def get_fortune(self, category):
         cmd = ["fortune", "-sn", str(self.length)]
         if category:
             #Sanitize

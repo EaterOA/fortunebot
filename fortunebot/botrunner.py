@@ -40,7 +40,7 @@ class FortunebotRunner(object):
             logger.error("{0}".format(ex))
             os._exit(1)
 
-    def _setupLogging(self):
+    def _setup_logging(self):
         """
         Setup logfile and formatting
         """
@@ -55,7 +55,7 @@ class FortunebotRunner(object):
             os._exit(1)
         logger.info("Set up log file")
 
-    def _sendBackground(self):
+    def _send_background(self):
         """
         Send to background with double-fork
         """
@@ -74,7 +74,7 @@ class FortunebotRunner(object):
             os._exit(1)
         logger.info("Forked into background")
 
-    def _redirectIO(self):
+    def _redirect_IO(self):
         """
         Redirect IO to /dev/null
         """
@@ -121,9 +121,9 @@ class FortunebotRunner(object):
             os._exit(1)
 
         if self.daemonize:
-            self._sendBackground()
-            self._redirectIO()
-            self._setupLogging()
+            self._send_background()
+            self._redirect_IO()
+            self._setup_logging()
             self._writepid()
             os.chdir(self.workpath)
 

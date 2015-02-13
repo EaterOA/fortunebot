@@ -44,16 +44,16 @@ class Weather(object):
             return "Syntax: !w [-s <save_zipcode>] [query_zipcode]"
         set_zipcode = args.set_zipcode
         if set_zipcode:
-            return self.setZip(source.nick, set_zipcode)
+            return self.set_zip(source.nick, set_zipcode)
         zipcode = args.zipcode
         if not zipcode:
             if source.nick in self.setcache:
                 zipcode = self.setcache[source.nick]
             elif source.host:
-                zipcode = self.getZip(source.host)
+                zipcode = self.get_zip(source.host)
             if not zipcode:
                 return "Please specify zip"
-        return self.getWeather(zipcode)
+        return self.get_weather(zipcode)
 
     def parse_args(self, text):
         args = text.split()
@@ -65,15 +65,15 @@ class Weather(object):
         parser.add_argument("-s", "--set", default="", dest="set_zipcode")
         return parser.parse_args(sargs)
 
-    def setZip(self, nick, zipcode):
-        if not self.validZip(zipcode):
+    def set_zip(self, nick, zipcode):
+        if not self.valid_zip(zipcode):
             return "Zip code is not in 5-digit format!"
         self.setcache[nick] = zipcode
 
-    def validZip(self, zipcode):
+    def valid_zip(self, zipcode):
         return len(zipcode) == 5 and zipcode.isdigit()
 
-    def getZip(self, host):
+    def get_zip(self, host):
         if host in self.hostcache:
             return self.hostcache[host]
         url = "https://freegeoip.net/json/{0}".format(host)
@@ -87,8 +87,8 @@ class Weather(object):
         self.hostcache[host] = res
         return res
 
-    def getWeather(self, zipcode):
-        if not self.validZip(zipcode):
+    def get_weather(self, zipcode):
+        if not self.valid_zip(zipcode):
             return "Zip code is not in 5-digit format!"
         if zipcode in self.zipcache:
             return self.zipcache[zipcode]

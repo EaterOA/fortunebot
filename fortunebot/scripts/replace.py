@@ -40,7 +40,7 @@ class Replace(object):
             return right
         return num
 
-    def findUnescapedSlash(self, text):
+    def find_delimiter(self, text):
         l = 0
         r = len(text)
         while l < r:
@@ -51,10 +51,10 @@ class Replace(object):
             l += 1
         return l
 
-    def splitByUnescapedSlash(self, text):
+    def split_delimiter(self, text):
         tokens = []
         while 1:
-            idx = self.findUnescapedSlash(text)
+            idx = self.find_delimiter(text)
             if idx == len(text):
                 tokens.append(text)
                 break
@@ -62,7 +62,7 @@ class Replace(object):
             text = text[(idx+1):]
         return tokens
 
-    def getFirstNumber(self, s):
+    def get_first_number(self, s):
         found = False
         n = 0
         for c in s:
@@ -75,17 +75,17 @@ class Replace(object):
             return -1
         return n
 
-    def parseArgs(self, text):
+    def parse_args(self, text):
         if len(text) < 4:
             return None
         if self.shortcut and text[:2] == 's/':
-            tokens = self.splitByUnescapedSlash(text)
+            tokens = self.split_delimiter(text)
             if len(tokens) < 3 or not tokens[1]:
                 return None
             pattern = tokens[1]
             repl = tokens[2]
             flags = "" if len(tokens) == 3 else tokens[3]
-            line = self.getFirstNumber(flags)
+            line = self.get_first_number(flags)
             search = "s" in flags
             return [pattern, repl, line, search]
         args = text.split()
@@ -102,7 +102,7 @@ class Replace(object):
 
     def on_pubmsg(self, source, channel, text):
         try:
-            args = self.parseArgs(text)
+            args = self.parse_args(text)
         except ArgumentError:
             return "Syntax: !replace [-l <line> | -s] <pattern> <repl>"
         nick = source.nick

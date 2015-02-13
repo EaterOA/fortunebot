@@ -27,10 +27,10 @@ class Markov(object):
         self.sample_file = None
         if path:
             self._init_sample_file(path, record)
-        self.endMult = 20
-        self.expandLimit = 50
-        self.sentenceChance = 0.7
-        self.chainKeywordChance = 0.4
+        self.end_mult = 20
+        self.expand_limit = 50
+        self.sentence_chance = 0.7
+        self.chain_keyword_chance = 0.4
 
     def __del__(self):
         if self.sample_file:
@@ -44,7 +44,7 @@ class Markov(object):
             self.sample_file = open(path, "r+", 1) # r+w line buffered
         for line in self.sample_file:
             if self.respond not in line:
-                self._addLine(line)
+                self._add_line(line)
         if not record:
             self.sample_file.close()
             self.sample_file = None
@@ -55,11 +55,11 @@ class Markov(object):
         if self.respond in text:
             return self.generate(text)
         elif self.listen:
-            self._addLine(text)
+            self._add_line(text)
             if self.sample_file:
                 self.sample_file.write("{0}\n".format(text))
 
-    def _addLine(self, line):
+    def _add_line(self, line):
         for triplet in self._triples(line):
             before = triplet[0]
             after = triplet[2]
@@ -105,14 +105,14 @@ class Markov(object):
         for i in range(1, len(words) - 1):
             yield (words[i-1], words[i], words[i+1])
 
-    def _filterKeywords(self, text):
+    def _filter_keywords(self, text):
         keywords = []
         for word in text.split():
             if word in self.table[1] and self.respond not in word:
                 keywords.append(word)
         return keywords
 
-    def getWord(self, base, keywords, prepend, order, endMult):
+    def get_word(self, base, keywords, prepend, order, end_mult):
         if order > 2:
             order = 2
         elif order < 1:
@@ -123,21 +123,21 @@ class Markov(object):
         c = self.table[order][base][idx]
         if len(c) == 1:
             return c.keys()[0]
-        if random.random() < self.chainKeywordChance:
-            chainableKeywords = [k for k in keywords if k in c]
-            if chainableKeywords:
-                res = random.choice(chainableKeywords)
+        if random.random() < self.chain_keyword_chance:
+            chainables = [k for k in keywords if k in c]
+            if chainables:
+                res = random.choice(chainables)
                 keywords.remove(res)
                 return res
-        endChance = (c[None] * endMult) / sum(c.values())
-        if random.random() < endChance:
+        end_chance = (c[None] * end_mult) / sum(c.values())
+        if random.random() < end_chance:
             return None
         res = random.choice([w for w in c.elements() if w is not None])
         if res in keywords:
             keywords.remove(res)
         return res
 
-    def generateSentence(self, keywords):
+    def generate_sentece(self, keywords):
         if not keywords:
             if not self.table[1]:
                 return ""
@@ -149,35 +149,35 @@ class Markov(object):
         """
         Expand left
         """
-        left = self.getWord(base, keywords, True, 1, 0)
+        left = self.get_word(base, keywords, True, 1, 0)
         if left:
             sentence.appendleft(left)
-            for mult in range(self.endMult, 200, self.endMult):
+            for mult in range(self.end_mult, 200, self.end_mult):
                 pair = (sentence[0], sentence[1])
-                left = self.getWord(pair, keywords, True, 2, mult/100.0)
+                left = self.get_word(pair, keywords, True, 2, mult/100.0)
                 if not left:
                     break
                 sentence.appendleft(left)
         """
         Expand right
         """
-        right = self.getWord(base, keywords, False, 1, 0)
+        right = self.get_word(base, keywords, False, 1, 0)
         if right:
             sentence.append(right)
-            for mult in range(self.endMult, 200, self.endMult):
+            for mult in range(self.end_mult, 200, self.end_mult):
                 pair = (sentence[-2], sentence[-1])
-                right = self.getWord(pair, keywords, False, 2, mult/100.0)
+                right = self.get_word(pair, keywords, False, 2, mult/100.0)
                 if not right:
                     break
                 sentence.append(right)
         return ' '.join(sentence)
 
     def generate(self, text):
-        keywords = self._filterKeywords(text)
+        keywords = self._filter_keywords(text)
         msg = ""
-        msg += self.generateSentence(keywords)
-        while keywords and len(msg) < self.expandLimit and random.random() < self.sentenceChance:
+        msg += self.generate_sentece(keywords)
+        while keywords and len(msg) < self.expand_limit and random.random() < self.sentence_chance:
             msg += '. '
-            msg += self.generateSentence(keywords)
+            msg += self.generate_sentece(keywords)
         return msg
 

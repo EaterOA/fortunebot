@@ -10,7 +10,7 @@ class Burn(object):
 
     NAME = "burn"
     PARAMS = [("str", "words")]
-    HELP = "Burn"
+    HELP = "BURNNNNNNNNN"
 
     def __init__(self, words):
         self.words = words.split()

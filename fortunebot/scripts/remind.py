@@ -29,18 +29,18 @@ class Remind(object):
         self.tasklist = defaultdict(deque)
 
     def on_poll(self, channel):
-        curTime = int(time.time())
-        toggleList = []
+        now = int(time.time())
+        toggle_list = []
         for i, t in enumerate(self.tasklist[channel]):
-            if curTime >= t[0]:
-                toggleList.append((i, t))
-        if not toggleList:
+            if now >= t[0]:
+                toggle_list.append((i, t))
+        if not toggle_list:
             return None
-        msgList = []
-        for i, t in reversed(toggleList):
+        msg_list = []
+        for i, t in reversed(toggle_list):
             del self.tasklist[channel][i]
-            msgList.append(t[1])
-        return msgList
+            msg_list.append(t[1])
+        return msg_list
 
     def on_pubmsg(self, source, channel, text):
         args = text.split()
@@ -62,9 +62,9 @@ class Remind(object):
         if not pargs.tmult:
             pargs.tmult = 1
         message = " ".join(pargs.msg)
-        return self.setReminder(channel, pargs.time * pargs.tmult, message)
+        return self.set_reminder(channel, pargs.time * pargs.tmult, message)
 
-    def setReminder(self, channel, dur, message):
+    def set_reminder(self, channel, dur, message):
         if dur < 0:
             dur = 0
         if dur > self.durlimit:

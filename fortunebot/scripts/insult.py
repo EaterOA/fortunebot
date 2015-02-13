@@ -22,9 +22,9 @@ class Insult(object):
         args = text.split()
         if not args or args[0] != "!insult":
             return
-        return self.getInsult()
+        return self.get_insult()
 
-    def getInsult(self):
+    def get_insult(self):
         insult = ""
         try:
             page = urllib.urlopen("http://www.pangloss.com/seidel/Shaker/index.html").read()
