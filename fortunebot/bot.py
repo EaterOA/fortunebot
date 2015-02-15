@@ -76,21 +76,22 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             self.ping_thread.change_interval(self.config["ping_interval"])
 
         # Dynamically load scripts
+        prefix = "fortunebot.scripts"
         module_names = fortunebot.scripts.__all__
         ### Get modules in scripts subpackage
-        modules = [importlib.import_module("fortunebot.scripts.{0}".format(m))
+        modules = [importlib.import_module("{0}.{1}".format(prefix, m))
                    for m in module_names]
-        ### Get a valid (NAME'd) class from each module
+        ### Get a valid (NAME == module) class from each module
         classes = []
-        seen = set()
         for m in modules:
             for _, obj in inspect.getmembers(m):
                 if (inspect.isclass(obj) and
                         "NAME" in dir(obj) and
-                        obj.NAME not in seen):
+                        "{0}.{1}".format(prefix, obj.NAME) == m.__name__):
                     classes.append(obj)
-                    seen.add(obj.NAME)
                     break
+        ### Look for global default enable/disable flag
+        enable_all = parser.getboolean("Scripts", "enable", False)
         ### Retrieve configurations and instantiate script objects
         pfuncs = {'str': parser.get,
                   'int': parser.getint,
@@ -98,7 +99,8 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
                   'bool': parser.getboolean}
         for c in classes:
             try :
-                if parser.getboolean("Scripts", "enable_{0}".format(c.NAME)):
+                ename = "enable_{0}".format(c.NAME)
+                if parser.getboolean("Scripts", ename, enable_all):
                     params = {}
                     if "PARAMS" in dir(c):
                         for t, p in c.PARAMS:
@@ -109,6 +111,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
                     self.scripts[c.NAME] = c(**params)
             except Exception as e:
                 logger.warning("Script {0} initialization error: {1}".format(c.NAME, e))
+        logger.info("Successfully loaded: {0}".format(", ".join(self.scripts.keys())))
 
     def start(self):
         if not self.config["server"] or not self.config["channels"]:

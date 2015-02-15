@@ -38,11 +38,18 @@ ping_interval = 30
 # Script-specific configurations
 # The options in this section are not required, but the absence of any
 # script-specific option will prevent that script from loading
-# Each script's option is prefixed with the script's name
+# Each script's option is prefixed with the script's name followed by an
+# underscore
 ##################################################
 
 [Scripts]
 
+# Default enable behavior
+# Set "yes" to default-enable all scripts found in fortunebot.scripts
+# Set "no" to default-deny
+# Can be overridden by script-specific enable option. For instance, to disable
+# a script such as weather, include `enable_weather = no`
+enable = yes
 
 ##### Weather
 # key: API key for worldweatheronline

@@ -10,7 +10,7 @@ import random
 
 class Magic8Ball(object):
 
-    NAME = "8ball"
+    NAME = "magic8ball"
     HELP = "!8ball [question] - Seek answer from the magic 8-ball"
 
     def on_pubmsg(self, source, channel, text):
