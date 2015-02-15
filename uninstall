@@ -8,9 +8,9 @@ fi
 
 NAME=fortunebot
 BINPATH=/usr/local/bin/$NAME
-CONFDIR=/var/lib/$NAME
 PIDDIR=/var/run/$NAME
 LOGDIR=/var/log/$NAME
+CONFDIR=/etc/$NAME
 
 # Remove binaries and installation directories
 if [ -f $BINPATH ]; then

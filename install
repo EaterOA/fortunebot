@@ -35,7 +35,7 @@ fi
 
 # Set up environment
 mkdir -p $PIDDIR $LOGDIR $CONFDIR
-cp config/$NAME.conf.example $CONFDIR
+cp config/$NAME.conf.example $CONFDIR/$NAME.conf
 cp $NAME/botrunner.py $BINPATH
 chmod 755 $BINPATH
 chown -R $NAME:$NAME $BINPATH $PIDDIR $LOGDIR $CONFDIR
