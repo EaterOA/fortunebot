@@ -83,10 +83,8 @@ markov_record = yes
 markov_respond = fortunebot
 
 ##### Remind
-# durlimit: Limit of how far into the future bot is willing to remind
 # tasklimit: Maximum number of tasks that can be set
 enable_remind = yes
-remind_durlimit = 604800
 remind_tasklimit = 1000
 
 ##### Replace
