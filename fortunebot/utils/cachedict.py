@@ -1,3 +1,19 @@
+"""
+cachedict.py
+
+A special class of dict that tracks the time at which items are inserted. Can
+optionally limit the size of the dictionary, in which case the oldest item will
+be pushed out in a least-recently-set fashion. Finally, CacheDict can also
+prune items according to how long they've been in the dict.
+
+CacheDict uses a regular dict to store mappings, and additionally a deque to
+store the timestamps of insertions. This deque maintains a sorted order.
+Inserting a new item is O(1)
+Pruning/popping is O(1)
+Deleting a specific item is O(n)
+Inserting an item with a specified offset is O(n)
+"""
+
 import collections
 import time
 
@@ -20,15 +36,28 @@ class CacheDict(collections.MutableMapping):
         return self.store[key]
 
     def __setitem__(self, key, val):
-        if self.limit == 0:
-            return
-        curtime = int(time.time())
+        self.insert(key, val)
+
+    def insert(self, key, val, offset=None):
+        now = int(time.time())
         if key in self.store:
             del self[key]
-        if self.limit > 0 and len(self.store) >= self.limit:
-            del self[self.timestore[0][0]]
+        if offset == None:
+            self.timestore.append((key, now))
+        else:
+            found = False
+            for i, ele in enumerate(self.timestore):
+                if ele[1] > now + offset:
+                    found = True
+                    self.timestore.rotate(-i)
+                    self.timestore.appendleft((key, now + offset))
+                    self.timestore.rotate(i)
+                    break
+            if not found:
+                self.timestore.append((key, now + offset))
         self.store[key] = val
-        self.timestore.append((key, curtime))
+        if self.limit >= 0 and len(self.store) > self.limit:
+            del self[self.timestore[0][0]]
 
     def __delitem__(self, key):
         del self.store[key]
@@ -40,9 +69,9 @@ class CacheDict(collections.MutableMapping):
     def prune(self, dur=None):
         if dur == None:
             dur = self.duration
-        curtime = int(time.time())
+        now = int(time.time())
         ret = {}
-        while self.timestore and self.timestore[0][1] + dur <= curtime:
+        while self.timestore and self.timestore[0][1] + dur <= now:
             k, _ = self.timestore.popleft()
             ret[k] = self.store[k]
             del self.store[k]
