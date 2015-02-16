@@ -17,13 +17,13 @@ class Weather(object):
     NAME = "weather"
     PARAMS = [("str", "key"),
               ("int", "cachedur"),
-              ("int", "setlimit")]
+              ("str", "zippath")]
     HELP = "!w [-s <save_zipcode>] [query_zipcode] - Provides weather " \
            "information about the location specified by query_zipcode. If " \
            "unspecified, will attempt to geolocate user. Can also save a " \
            "zipcode using the -s switch."
 
-    def __init__(self, key, cachedur, setlimit):
+    def __init__(self, key, cachedur, zippath):
         if not key:
             self.key = ""
         else:
@@ -31,7 +31,25 @@ class Weather(object):
             self.key = "".join([c for c in key.split()[0] if c.isalnum()])
         self.zipcache = CacheDict(duration=cachedur)
         self.hostcache = CacheDict(duration=cachedur)
-        self.setcache = CacheDict(limit=setlimit)
+        self.savecache = {}
+        self.zipfile = None
+        if zippath:
+            self.load_zips(zippath)
+
+    def load_zips(self, path):
+        try:
+            self.zipfile = open(path, "r+", 1) # r+w line buffered
+            for line in self.zipfile:
+                nick, zipcode = tuple(line.split())
+                if self.valid_zip(zipcode):
+                    self.savecache[nick] = zipcode
+            self.zipfile.seek(0)
+            self.zipfile.truncate()
+            for nick, zipcode in self.savecache.items():
+                self.zipfile.write("{0} {1}\n".format(nick, zipcode))
+        except:
+            self.zipfile = None
+            raise
 
     def on_pubmsg(self, source, channel, text):
         if not self.key:
@@ -42,13 +60,13 @@ class Weather(object):
                 return None
         except ArgumentError:
             return "Syntax: !w [-s <save_zipcode>] [query_zipcode]"
-        set_zipcode = args.set_zipcode
-        if set_zipcode:
-            return self.set_zip(source.nick, set_zipcode)
+        save_zipcode = args.save_zipcode
+        if save_zipcode:
+            return self.save_zip(source.nick, save_zipcode)
         zipcode = args.zipcode
         if not zipcode:
-            if source.nick in self.setcache:
-                zipcode = self.setcache[source.nick]
+            if source.nick in self.savecache:
+                zipcode = self.savecache[source.nick]
             elif source.host:
                 zipcode = self.get_zip(source.host)
             if not zipcode:
@@ -62,13 +80,17 @@ class Weather(object):
         sargs = shlex.split(" ".join(args[1:]))
         parser = UndeadArgumentParser(add_help=False)
         parser.add_argument("zipcode", nargs="?", default="")
-        parser.add_argument("-s", "--set", default="", dest="set_zipcode")
+        parser.add_argument("-s", "--save", default="", dest="save_zipcode")
         return parser.parse_args(sargs)
 
-    def set_zip(self, nick, zipcode):
+    def save_zip(self, nick, zipcode):
         if not self.valid_zip(zipcode):
             return "Zip code is not in 5-digit format!"
-        self.setcache[nick] = zipcode
+        if nick in self.savecache and self.savecache[nick] == zipcode:
+            return
+        self.savecache[nick] = zipcode
+        if self.zipfile:
+            self.zipfile.write("{0} {1}\n".format(nick, zipcode))
 
     def valid_zip(self, zipcode):
         return len(zipcode) == 5 and zipcode.isdigit()

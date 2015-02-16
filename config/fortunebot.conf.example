@@ -54,11 +54,12 @@ enable = yes
 ##### Weather
 # key: API key for worldweatheronline
 # cachedur: How long to cache geolocation results and zip code data
-# setlimit: How many people are allowed to set zip codes (-1 for unlimited)
+# zippath: Path of file to record saved zipcodes for nicks. To store only
+# in-memory, specify an empty path
 enable_weather = yes
 weather_key =
 weather_cachedur = 300
-weather_setlimit = 100
+weather_zippath =
 
 ##### Insult
 enable_insult = yes
