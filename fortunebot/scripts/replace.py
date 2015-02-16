@@ -13,7 +13,7 @@ import re
 import shlex
 from fortunebot.utils import UndeadArgumentParser
 from argparse import ArgumentError
-from collections import deque
+from collections import defaultdict, deque
 
 class Replace(object):
 
@@ -31,14 +31,7 @@ class Replace(object):
         self.shortcut = shortcut
         self.maxlength = maxlength
         self.maxlines = maxlines
-        self.cache = {}
-
-    def squeeze(self, num, left, right):
-        if num < left:
-            return left
-        if num > right:
-            return right
-        return num
+        self.cache = defaultdict(lambda: deque(maxlen=maxlines))
 
     def find_delimiter(self, text):
         l = 0
@@ -107,18 +100,11 @@ class Replace(object):
             return "Syntax: !replace [-l <line> | -s] <pattern> <repl>"
         nick = source.nick
         if not args:
-            if nick not in self.cache:
-                self.cache[nick] = deque()
-            while len(self.cache[nick]) >= self.maxlines:
-                self.cache[nick].pop()
             self.cache[nick].appendleft(text)
             return None
         if nick not in self.cache:
             return None
-        pattern = args[0]
-        repl = args[1]
-        line = self.squeeze(args[2], -1, len(self.cache[nick])-1)
-        search = args[3]
+        pattern, repl, line, search = args
         if line == -1:
             if search:
                 flag = True
