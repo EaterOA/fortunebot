@@ -26,7 +26,7 @@ class FortunebotRunner(object):
         self.daemonize = daemonize
         self.pidpath = os.path.abspath(pidpath)
         self.logpath = os.path.abspath(logpath)
-        self.confpaths = ["/etc/fortunebot/fortunebot.conf",
+        self.confpaths = [os.path.expanduser("~/.fortunebot/fortunebot.conf"),
                           os.path.abspath("fortunebot.conf")]
         if os.path.abspath(confpath) not in self.confpaths:
             self.confpaths.append(os.path.abspath(confpath))
