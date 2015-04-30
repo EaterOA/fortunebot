@@ -1,12 +1,8 @@
-# misc
-workshop/
-venv/
+# volatile data
 *.conf
+*.log
 
-# editor
-*.swp
-
-# python
+# python packaging
 *.py[co]
 *.egg
 *.egg-info
