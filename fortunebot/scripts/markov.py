@@ -26,7 +26,7 @@ class Markov(object):
         self.table = [{}, {}, {}]
         self.sample_file = None
         if path:
-            self._init_sample_file(path, record)
+            self.init_sample_file(path, record)
         self.end_mult = 20
         self.expand_limit = 50
         self.sentence_chance = 0.7
@@ -37,14 +37,14 @@ class Markov(object):
             self.sample_file.close()
             self.sample_file = None
 
-    def _init_sample_file(self, path, record):
+    def init_sample_file(self, path, record):
         if not record:
             self.sample_file = open(path)
         else:
             self.sample_file = open(path, "r+", 1) # r+w line buffered
         for line in self.sample_file:
             if self.respond not in line:
-                self._add_line(line)
+                self.add_line(line)
         if not record:
             self.sample_file.close()
             self.sample_file = None
@@ -55,12 +55,12 @@ class Markov(object):
         if self.respond in text:
             return self.generate(text)
         elif self.listen:
-            self._add_line(text)
+            self.add_line(text)
             if self.sample_file:
                 self.sample_file.write("{0}\n".format(text))
 
-    def _add_line(self, line):
-        for triplet in self._triples(line):
+    def add_line(self, line):
+        for triplet in self.triples(line):
             before = triplet[0]
             after = triplet[2]
             """
@@ -94,7 +94,8 @@ class Markov(object):
             self.table[2][key2b][0][before] += 1
             self.table[2][key2a][1][after] += 1
 
-    def _triples(self, line):
+    @staticmethod
+    def triples(line):
         if not line:
             return
         words = line.split()
@@ -105,7 +106,7 @@ class Markov(object):
         for i in range(1, len(words) - 1):
             yield (words[i-1], words[i], words[i+1])
 
-    def _filter_keywords(self, text):
+    def filter_keywords(self, text):
         keywords = []
         for word in text.split():
             if word in self.table[1] and self.respond not in word:
@@ -173,7 +174,7 @@ class Markov(object):
         return ' '.join(sentence)
 
     def generate(self, text):
-        keywords = self._filter_keywords(text)
+        keywords = self.filter_keywords(text)
         msg = ""
         msg += self.generate_sentece(keywords)
         while keywords and len(msg) < self.expand_limit and random.random() < self.sentence_chance:

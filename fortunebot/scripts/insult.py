@@ -15,9 +15,6 @@ class Insult(object):
     NAME = "insult"
     HELP = "!insult - Insults you elegantly"
 
-    def __init__(self):
-        pass
-
     def on_pubmsg(self, source, channel, text):
         args = text.split()
         if not args or args[0] != "!insult":
