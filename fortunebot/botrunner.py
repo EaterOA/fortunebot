@@ -40,7 +40,7 @@ class FortunebotRunner(object):
             logger.error("{0}".format(ex))
             os._exit(1)
 
-    def _setup_logging(self):
+    def setup_logging(self):
         """
         Setup logfile and formatting
         """
@@ -55,7 +55,7 @@ class FortunebotRunner(object):
             os._exit(1)
         logger.info("Set up log file")
 
-    def _send_background(self):
+    def send_background(self):
         """
         Send to background with double-fork
         """
@@ -74,7 +74,7 @@ class FortunebotRunner(object):
             os._exit(1)
         logger.info("Forked into background")
 
-    def _redirect_IO(self):
+    def redirect_IO(self):
         """
         Redirect IO to /dev/null
         """
@@ -102,7 +102,7 @@ class FortunebotRunner(object):
             os._exit(1)
         logger.info("Redirected IO to /dev/null")
 
-    def _writepid(self):
+    def writepid(self):
         """
         Writing pidfile
         """
@@ -121,10 +121,10 @@ class FortunebotRunner(object):
             os._exit(1)
 
         if self.daemonize:
-            self._send_background()
-            self._redirect_IO()
-            self._setup_logging()
-            self._writepid()
+            self.send_background()
+            self.redirect_IO()
+            self.setup_logging()
+            self.writepid()
             os.chdir(self.workpath)
 
         logger.info("Starting bot")
@@ -134,7 +134,7 @@ class FortunebotRunner(object):
         except Exception as ex:
             logger.error("Bot died: {0}".format(ex))
         finally:
-            self._clean()
+            self.clean()
             os._exit(1)
 
     def getpid(self):
@@ -152,7 +152,7 @@ class FortunebotRunner(object):
             return False
         return os.path.exists("/proc/{0}".format(pid))
 
-    def _clean(self):
+    def clean(self):
         if self.daemonize:
             logger.info("Removing pid file")
             try:
@@ -165,12 +165,33 @@ class FortunebotRunner(object):
         logger.info("Disconnecting bot...")
         self.bot.disconnect("Farewell comrades!")
         self.bot.clean()
-        self._clean()
+        self.clean()
         os._exit(0)
 
     def sighup_handler(self, signum, frame):
         logger.info("Reloading bot configs")
         self.bot.load_config(self.confpaths)
+
+def parse_args():
+    parser = ArgumentParser()
+    parser.add_argument(
+        "--daemonize", action="store_true", default=False,
+        help="run fortunebot as a daemon")
+    parser.add_argument(
+        "--confpath", default="fortunebot.conf",
+        help="Specify path for config file. Default fortunebot.conf")
+    parser.add_argument(
+        "--pidpath", default="fortunebot.pid",
+        help="Specify path for pid file, if daemonize. Default fortunebot.pid")
+    parser.add_argument(
+        "--logpath", default="fortunebot.log",
+        help="Specify path for log file, if daemonize. Default fortunebot.log")
+    parser.add_argument(
+        "--workpath", default=".",
+        help="Specify the working directory of the process, which affects "
+            "all relative paths on command line and config file. Default "
+            "current directory")
+    return parser.parse_args()
 
 def main():
 
@@ -181,14 +202,8 @@ def main():
     streamHandler.setFormatter(formatter)
     logger.addHandler(streamHandler)
 
-    # Parse input
-    parser = ArgumentParser()
-    parser.add_argument("--daemonize", action="store_true", default=False, help="run fortunebot as a daemon")
-    parser.add_argument("--confpath", default="fortunebot.conf", help="Specify path for config file. Default fortunebot.conf")
-    parser.add_argument("--pidpath", default="fortunebot.pid", help="Specify path for pid file, if daemonize. Default fortunebot.pid")
-    parser.add_argument("--logpath", default="fortunebot.log", help="Specify path for log file, if daemonize. Default fortunebot.log")
-    parser.add_argument("--workpath", default=".", help="Specify the working directory of the process, which affects all relative paths on command line and config file. Default current directory")
-    args = parser.parse_args()
+    # Parse command line arguments
+    args = parse_args()
 
     # Start the bot!
     runner = FortunebotRunner(args.daemonize, args.pidpath,

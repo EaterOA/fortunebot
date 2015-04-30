@@ -78,10 +78,10 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         # Dynamically load scripts
         prefix = "fortunebot.scripts"
         module_names = fortunebot.scripts.__all__
-        ### Get modules in scripts subpackage
+        # Get modules in scripts subpackage
         modules = [importlib.import_module("{0}.{1}".format(prefix, m))
                    for m in module_names]
-        ### Get a valid (NAME == module) class from each module
+        # Get a valid (NAME == module) class from each module
         classes = []
         for m in modules:
             for _, obj in inspect.getmembers(m):
@@ -90,9 +90,9 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
                         "{0}.{1}".format(prefix, obj.NAME) == m.__name__):
                     classes.append(obj)
                     break
-        ### Look for global default enable/disable flag
+        # Look for global default enable/disable flag
         enable_all = parser.getboolean("Scripts", "enable", False)
-        ### Retrieve configurations and instantiate script objects
+        # Retrieve configurations and instantiate script objects
         pfuncs = {'str': parser.get,
                   'int': parser.getint,
                   'float': parser.getfloat,
@@ -122,7 +122,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         except irc.client.ServerConnectionError:
             logger.error("Unable to connect to server")
             return
-        self._process_forever()
+        self.process_forever()
 
     def disconnect(self, msg=""):
         self.config["reconnect"] = False
@@ -242,7 +242,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
                     msg = None
                 self.send_msg(channel, msg)
 
-    def _process_forever(self, timeout=0.2):
+    def process_forever(self, timeout=0.2):
         """
         A hack that duplicates the IRC object's process_forever, in order
         to work around an unhandled InterruptedSystemCall exception on a
