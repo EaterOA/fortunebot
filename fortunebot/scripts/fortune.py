@@ -29,13 +29,6 @@ class Fortune(object):
         category = args[1] if len(args) > 1 else None
         return self.get_fortune(category)
 
-    def _pkill(self, p):
-        if p.poll() == None:
-            try:
-                p.kill()
-            except Exception:
-                pass
-
     def get_fortune(self, category):
         cmd = ["fortune", "-sn", str(self.length)]
         if category:
@@ -44,7 +37,13 @@ class Fortune(object):
             category = "".join([c for c in category if c.isalnum()])
             cmd.append(category)
         proc = Popen(cmd, stderr=PIPE, stdout=PIPE)
-        timeout = Timer(0.5, self._pkill, [proc])
+        def killproc():
+            if proc.poll() == None:
+                try:
+                    proc.kill()
+                except:
+                    pass
+        timeout = Timer(0.5, killproc)
         timeout.start()
         res, _ = proc.communicate()
         timeout.cancel()
@@ -54,4 +53,3 @@ class Fortune(object):
             res = res.strip()
             res = re.sub(r"[ \t\r\n]+", " ", res)
         return res.decode("latin-1").encode("utf-8")
-
