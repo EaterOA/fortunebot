@@ -195,6 +195,3 @@ def main():
                               args.logpath, args.confpath,
                               args.workpath)
     runner.start()
-
-if __name__ == "__main__":
-    main()
