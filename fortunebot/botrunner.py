@@ -10,6 +10,7 @@ import os
 import signal
 import resource
 import logging
+import appdirs
 from argparse import ArgumentParser
 from fortunebot.bot import FortuneBot
 logger = logging.getLogger("fortunebot")
@@ -26,8 +27,11 @@ class FortunebotRunner(object):
         self.daemonize = daemonize
         self.pidpath = os.path.abspath(pidpath)
         self.logpath = os.path.abspath(logpath)
-        self.confpaths = [os.path.expanduser("~/.fortunebot/fortunebot.conf"),
-                          os.path.abspath("fortunebot.conf")]
+        self.confpaths = [
+            os.path.join(
+                appdirs.user_config_dir("fortunebot"), "fortunebot.conf"),
+            os.path.abspath("fortunebot.conf"),
+        ]
         if os.path.abspath(confpath) not in self.confpaths:
             self.confpaths.append(os.path.abspath(confpath))
         signal.signal(signal.SIGTERM, self.sigterm_handler)

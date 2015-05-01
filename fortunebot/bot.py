@@ -53,7 +53,8 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         sections = ["Connect", "Scripts"]
         parser = EasyConfigParser(sections=sections)
         if not parser.read(confpaths):
-            raise Exception("No config files were found or successfully read")
+            raise Exception("No config files were found or successfully read. "
+                "Try generating one with fortunebot-generate-config.")
         self.config = {
             "server": parser.get("Connect", "server"),
             "port": parser.getint("Connect", "port"),
