@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
+Convenience script to copy the packaged config file into a standard config
+directory for fortunebot
+
+Hooked by setuptools into `fortunebot-generate-config`
 """
 
 from __future__ import print_function
