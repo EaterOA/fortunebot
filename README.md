@@ -37,32 +37,28 @@ Clearly very useful stuff, especially the insult.
 
 # Install #
 
-If you're a sysadmin who wants to install this bot as a daemon on a Debian
-system, simply run the install script in the root git directory. This will
-create a fortunebot user, init script in /etc/init.d, and standard directories
-at /var/run/fortunebot, /var/log/fortunebot, and /etc/fortunebot. You can
-control the bot with /etc/init.d/fortunebot start, stop, reload, and restart.
-The uninstall script does the reverse to remove fortunebot from your system.
+You must first install the package with:
 
-You must configure fortunebot by renaming
-/etc/fortunebot/fortunebot.conf.example to fortunebot.conf, and editing
-whatever settings you want inside. All settings under Connect must be present,
-but the Script settings are not critical. Any missing settings for a particular
-script will simply prevent that script from loading.
+    python setup.py install
 
-If you don't have admin privileges, unfortunately you still need to find some
-way to install the fortunebot python package. virtualenv works great: activate
-an environment and run `python setup.py install`. After that's done, you can
-run the bot by directly invoking botrunner.py.
+If you don't have root privileges to install Python packages, then installing
+it within a virtualenv environment also works fine. After this is done, you
+must generate a config file for fortunebot by running:
 
-The above comments about configuration applies in directly invoking
-botrunner.py, except you can specify the location of the config file via
-command line option. Check botrunner.py --help to see full list of options.
+    fortunebot-generate-config
+
+This will create a config directory (probably in ~/.config/fortunebot) and copy
+the default config file into it. All of the settings under Connect must be
+present, but the ones under Scripts are not critical. Any missing settings for
+a particular script will simply prevent that script from loading.
+
+Finally, to run the bot, simply invoke:
+
+    fortunebot
+
+Use the `--help` flag to see a full list of options.
 
 # Dependencies #
 
 The bot is tested with Python 2.7. Some effort was done to make it future-proof
 for Python 3, but it probably doesn't work right out of the box.
-
-The bot uses Python irclib. Find that at http://python-irclib.sourceforge.net/
-
