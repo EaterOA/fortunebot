@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='fortunebot',
-    version='1.1',
+    version='1.2',
     description="Yet another IRC bot",
     classifiers=[
       'Development Status :: 3 - Alpha',
@@ -17,7 +17,6 @@ setup(
     include_package_data=True,
     install_requires=[
         "irc>=11",
-        "importlib",
         "appdirs",
     ],
     entry_points={
