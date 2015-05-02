@@ -26,7 +26,7 @@ def main():
     dest_file = os.path.join(dest_dir, CONFIG_NAME)
     if not os.path.exists(dest_dir):
         try:
-            os.makedirs(dest_dir, 0700)
+            os.makedirs(dest_dir, 0o700)
         except OSError as e:
             error_exit(e)
     try:

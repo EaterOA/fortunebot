@@ -38,7 +38,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         self.exit = False
 
     def clean(self):
-        for name in self.scripts.keys():
+        for name in self.scripts:
             del self.scripts[name]
 
     def load_config(self, confpaths):
@@ -112,7 +112,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
                     self.scripts[c.NAME] = c(**params)
             except Exception as e:
                 logger.warning("Script {0} initialization error: {1}".format(c.NAME, e))
-        logger.info("Successfully loaded: {0}".format(", ".join(self.scripts.keys())))
+        logger.info("Successfully loaded: {0}".format(", ".join(self.scripts)))
 
     def start(self):
         if not self.config["server"] or not self.config["channels"]:
@@ -144,7 +144,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
                 c.privmsg(channel, m.decode("utf-8"))
 
     def reconnect(self):
-        for count in xrange(self.config["reconnect_tries"]):
+        for count in range(self.config["reconnect_tries"]):
             logger.info("Reconnecting to server (try #{0})...".format(count+1))
             self.connection.reconnect()
             time.sleep(self.config["reconnect_interval"])
@@ -207,7 +207,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
                     msg = self.help_msg[script]
             else:
                 msg = "!help [script] - Active scripts: "
-                msg += ", ".join(self.scripts.keys())
+                msg += ", ".join(self.scripts)
         return msg
 
     def on_privmsg(self, c, e):

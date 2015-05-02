@@ -30,7 +30,7 @@ class Remind(object):
         toggled = self.tasks[channel].prune()
         if not toggled:
             return
-        return toggled.values()
+        return list(toggled.values())
 
     def on_pubmsg(self, source, channel, text):
         try:
