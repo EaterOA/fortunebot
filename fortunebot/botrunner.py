@@ -138,7 +138,7 @@ class FortunebotRunner(object):
             self.bot.load_config(self.confpaths)
             self.bot.start()
         except Exception as ex:
-            logger.error("Bot died: {0}".format(ex))
+            logger.exception("Bot died:")
         finally:
             self.clean()
             os._exit(1)
