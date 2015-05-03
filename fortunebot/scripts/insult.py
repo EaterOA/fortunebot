@@ -7,7 +7,7 @@ A script that produces Shakespearean insults. It pulls insults via HTTP from
 Chris Seidel's Shakespearean Insulter website.
 """
 
-import urllib
+import requests
 import re
 
 class Insult(object):
@@ -24,10 +24,10 @@ class Insult(object):
     def get_insult(self):
         insult = ""
         try:
-            page = urllib.urlopen("http://www.pangloss.com/seidel/Shaker/index.html").read()
-            match = re.search("^.+?</font>$", page, re.M)
+            r = requests.get("http://www.pangloss.com/seidel/Shaker/index.html")
+            match = re.search("^.+?</font>$", r.text, re.M)
             insult = match.group(0).split('<')[0]
-        except IOError:
+        except:
             insult = "ERROR: Unable to retrieve insult"
         return insult
 

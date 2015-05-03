@@ -18,6 +18,7 @@ setup(
     install_requires=[
         "irc>=11",
         "appdirs",
+        "requests",
     ],
     entry_points={
         'console_scripts': [
