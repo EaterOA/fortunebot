@@ -132,16 +132,17 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
     def send_msg(self, channel, msg):
         if not msg:
             return
-        c = self.connection
-        illegal = ""
-        for ch in range(32):
-            illegal += chr(ch)
+        if type(msg) is unicode:
+            msg = msg.encode('utf-8')
         if type(msg) is str:
             msg = [msg]
+        elif type(msg) is not list:
+            return
+        c = self.connection
+        illegal = "".join([chr(i) for i in range(32)])
         for m in msg:
-            if type(m) is str:
-                m = m.translate(None, illegal)
-                c.privmsg(channel, m.decode("utf-8"))
+            m = m.translate(None, illegal)
+            c.privmsg(channel, m.decode("utf-8"))
 
     def reconnect(self):
         for count in range(self.config["reconnect_tries"]):
