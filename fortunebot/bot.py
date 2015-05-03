@@ -9,6 +9,7 @@ with a configuration system, dynamic script plug-in system, and slightly
 enhanced basic IRC event handling (reconnects, etc).
 """
 
+import six
 import select
 import time
 import errno
@@ -184,7 +185,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         self.ping_ignored = 0
 
     def on_poll(self):
-        for name, s in self.scripts.items():
+        for name, s in six.iteritems(self.scripts):
             if "on_poll" in dir(s):
                 for ch in self.config["channels"]:
                     try:
@@ -235,7 +236,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
             self.send_msg(channel, help_msg)
 
         # Invoke scripts
-        for name, s in self.scripts.items():
+        for name, s in six.iteritems(self.scripts):
             if "on_pubmsg" in dir(s):
                 try:
                     msg = s.on_pubmsg(source, channel, text)

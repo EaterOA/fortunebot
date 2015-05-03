@@ -8,6 +8,7 @@ and daemonizes the process if necessary.
 Hooked by setuptools into `fortunebot`
 """
 
+import six
 import os
 import signal
 import resource
@@ -92,7 +93,7 @@ class FortunebotRunner(object):
             maxfd = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
             if maxfd == resource.RLIM_INFINITY:
                 maxfd = 1024
-            for fd in reversed(range(maxfd)):
+            for fd in reversed(six.moves.xrange(maxfd)):
                 try:
                     os.close(fd)
                 except OSError:

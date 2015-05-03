@@ -6,6 +6,7 @@ weather.py
 A script that tells the weather. Uses the World Weather Online API.
 """
 
+import six
 import requests
 import json
 import shlex
@@ -45,7 +46,7 @@ class Weather(object):
                     self.savecache[nick] = zipcode
             self.zipfile.seek(0)
             self.zipfile.truncate()
-            for nick, zipcode in self.savecache.items():
+            for nick, zipcode in six.iteritems(self.savecache):
                 self.zipfile.write("{0} {1}\n".format(nick, zipcode))
         except:
             self.zipfile = None
@@ -130,7 +131,7 @@ class Weather(object):
                 tempC = weather['temp_C']
                 desc = weather['weatherDesc'][0]['value']
                 humidity = weather['humidity']
-                res = u"{0}, {1}: {2}. {3}°F ({4}°C). Humidity: {5}%.".format(city, state, desc, tempF, tempC, humidity).encode("utf-8")
+                res = "{0}, {1}: {2}. {3}°F ({4}°C). Humidity: {5}%.".format(city, state, desc, tempF, tempC, humidity)
         except:
             # Don't cache connection failures
             return "Unable to connect to weather API!"

@@ -3,22 +3,23 @@ from setuptools import setup, find_packages
 setup(
     name='fortunebot',
     version='1.2',
-    description="Yet another IRC bot",
+    description='Yet another IRC bot',
     classifiers=[
       'Development Status :: 3 - Alpha',
       'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
       'Programming Language :: Python :: 2.7',
     ],
-    url="https://github.com/EaterOA/fortunebot",
-    author="Vincent Wong",
-    author_email="duperduper@ucla.edu",
-    license="GPL3",
+    url='https://github.com/EaterOA/fortunebot',
+    author='Vincent Wong',
+    author_email='duperduper@ucla.edu',
+    license='GPL3',
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        "irc>=11",
-        "appdirs",
-        "requests",
+        'irc>=11',
+        'appdirs',
+        'requests',
+        'six',
     ],
     entry_points={
         'console_scripts': [

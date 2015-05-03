@@ -123,7 +123,7 @@ class Markov(object):
         idx = 0 if prepend else 1
         c = self.table[order][base][idx]
         if len(c) == 1:
-            return c.keys()[0]
+            return next(iter(c))
         if random.random() < self.chain_keyword_chance:
             chainables = [k for k in keywords if k in c]
             if chainables:
