@@ -38,7 +38,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         self.exit = False
 
     def clean(self):
-        for name in self.scripts:
+        for name in list(self.scripts):
             del self.scripts[name]
 
     def load_config(self, confpaths):
