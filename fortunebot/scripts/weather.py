@@ -6,7 +6,7 @@ weather.py
 A script that tells the weather. Uses the World Weather Online API.
 """
 
-import urllib
+import requests
 import json
 import shlex
 from fortunebot.utils import UndeadArgumentParser, CacheDict
@@ -101,10 +101,10 @@ class Weather(object):
         url = "https://freegeoip.net/json/{0}".format(host)
         res = ""
         try:
-            page = urllib.urlopen(url).read()
+            page = requests.get(url).text
             data = json.loads(page)
             res = data["zip_code"]
-        except (IOError, ValueError):
+        except:
             pass
         self.hostcache[host] = res
         return res
@@ -117,7 +117,7 @@ class Weather(object):
         url = "http://api.worldweatheronline.com/free/v1/weather.ashx?q={0}&format=json&fx=no&includelocation=yes&key={1}".format(zipcode, self.key)
         res = ""
         try:
-            page = urllib.urlopen(url).read()
+            page = requests.get(url).text
             wdata = json.loads(page)["data"]
             if "error" in wdata:
                 res = "No data found for {0}!".format(zipcode)
@@ -131,7 +131,7 @@ class Weather(object):
                 desc = weather['weatherDesc'][0]['value']
                 humidity = weather['humidity']
                 res = u"{0}, {1}: {2}. {3}°F ({4}°C). Humidity: {5}%.".format(city, state, desc, tempF, tempC, humidity).encode("utf-8")
-        except (IOError, ValueError):
+        except:
             # Don't cache connection failures
             return "Unable to connect to weather API!"
         self.zipcache[zipcode] = res
