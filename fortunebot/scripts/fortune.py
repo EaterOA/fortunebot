@@ -50,6 +50,7 @@ class Fortune(object):
         if not res:
             res = "ERROR: Fortune not found"
         else:
+            res = res.decode("latin1")
             res = res.strip()
             res = re.sub(r"[ \t\r\n]+", " ", res)
-        return res.decode("latin1")
+        return res
