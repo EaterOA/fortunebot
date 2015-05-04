@@ -215,7 +215,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
 
         # Extract info
         source = e.source
-        text = e.arguments[0].encode('utf-8')
+        text = e.arguments[0]
 
         # Handle help
         help_msg = self.parse_help(text)
@@ -227,7 +227,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         # Extract info
         source = e.source
         channel = e.target
-        text = e.arguments[0].encode('utf-8')
+        text = e.arguments[0]
 
         # Handle help
         help_msg = self.parse_help(text)
