@@ -93,7 +93,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
                     classes.append(obj)
                     break
         # Look for global default enable/disable flag
-        enable_all = parser.getboolean("Scripts", "enable", False)
+        enable_all = parser.getboolean("Scripts", "enable", fallback=False)
         # Retrieve configurations and instantiate script objects
         pfuncs = {'str': parser.get,
                   'int': parser.getint,
@@ -102,7 +102,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         for c in classes:
             try :
                 ename = "enable_{0}".format(c.NAME)
-                if parser.getboolean("Scripts", ename, enable_all):
+                if parser.getboolean("Scripts", ename, fallback=enable_all):
                     params = {}
                     if "PARAMS" in dir(c):
                         for t, p in c.PARAMS:
