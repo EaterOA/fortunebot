@@ -5,8 +5,18 @@ A subclass of ConfigParser.RawConfigParser that provides less annoying
 management of sections
 """
 
-import ConfigParser
 from six.moves import configparser
+
+def defaultable(f):
+    def wrapper(self, section, option, default=None):
+        try:
+            return f(self, section, option)
+        except:
+            if default == None:
+                raise
+            else:
+                return default
+    return wrapper
 
 class EasyConfigParser(configparser.RawConfigParser):
 
@@ -22,17 +32,6 @@ class EasyConfigParser(configparser.RawConfigParser):
         configparser.RawConfigParser.__init__(self, defaults)
         for s in sections:
             self.add_section(s)
-
-    def defaultable(f):
-        def wrapper(self, section, option, default=None):
-            try:
-                return f(self, section, option)
-            except:
-                if default == None:
-                    raise
-                else:
-                    return default
-        return wrapper    
 
     @defaultable
     def get(self, section, option):
