@@ -17,7 +17,7 @@ import logging
 import importlib
 import inspect
 import irc.bot
-from fortunebot.utils import EasyConfigParser, RepeatingThread
+import fortunebot.utils as utils
 import fortunebot.scripts
 logger = logging.getLogger("fortunebot")
 """
@@ -33,8 +33,8 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
         self.config = {}
         self.scripts = {}
         self.help_msg = {}
-        self.poll_thread = RepeatingThread(1.0, 0.0, 0, self.on_poll)
-        self.ping_thread = RepeatingThread(30.0, 0.0, 0, self.probe_connection)
+        self.poll_thread = utils.RepeatingThread(1.0, 0.0, 0, self.on_poll)
+        self.ping_thread = utils.RepeatingThread(30.0, 0.0, 0, self.probe_connection)
         self.ping_ignored = 0
         self.exit = False
 
@@ -52,7 +52,7 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
 
         # Read core settings from config file
         sections = ["Connect", "Scripts"]
-        parser = EasyConfigParser(sections=sections)
+        parser = utils.EasyConfigParser(sections=sections)
         if not parser.read(confpaths):
             raise Exception("No config files were found or successfully read. "
                 "Try generating one with fortunebot-generate-config.")
@@ -133,17 +133,16 @@ class FortuneBot(irc.bot.SingleServerIRCBot):
     def send_msg(self, channel, msg):
         if not msg:
             return
-        if type(msg) is unicode:
-            msg = msg.encode('utf-8')
-        if type(msg) is str:
+        if not isinstance(msg, list):
             msg = [msg]
-        elif type(msg) is not list:
-            return
         c = self.connection
-        illegal = "".join([chr(i) for i in range(32)])
         for m in msg:
-            m = m.translate(None, illegal)
-            c.privmsg(channel, m.decode("utf-8"))
+            try:
+                m = utils.to_unicode(m)
+                m = utils.strip_unprintable(m)
+                c.privmsg(channel, m)
+            except Exception as e:
+                logger.warning("Failed on send_msg: {}".format(e))
 
     def reconnect(self):
         for count in range(self.config["reconnect_tries"]):
