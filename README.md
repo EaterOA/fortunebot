@@ -60,5 +60,4 @@ Use the `--help` flag to see a full list of options.
 
 # Dependencies #
 
-The bot is tested with Python 2.7. Some effort was done to make it future-proof
-for Python 3, but it probably doesn't work right out of the box.
+The bot is tested with Python 2.7 and 3.4 on a Debian-based system.
