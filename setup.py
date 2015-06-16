@@ -2,12 +2,13 @@ from setuptools import setup, find_packages
 
 setup(
     name='fortunebot',
-    version='1.2',
+    version='1.3',
     description='Yet another IRC bot',
     classifiers=[
-      'Development Status :: 3 - Alpha',
+      'Development Status :: 4 - Beta',
       'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
       'Programming Language :: Python :: 2.7',
+      'Programming Language :: Python :: 3.4',
     ],
     url='https://github.com/EaterOA/fortunebot',
     author='Vincent Wong',
