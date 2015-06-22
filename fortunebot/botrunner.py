@@ -9,6 +9,7 @@ Hooked by setuptools into `fortunebot`
 """
 
 import six
+import sys
 import os
 import signal
 import resource
@@ -179,7 +180,7 @@ class FortunebotRunner(object):
         logger.info("Reloading bot configs")
         self.bot.load_config(self.confpaths)
 
-def parse_args():
+def parse_args(args):
     parser = ArgumentParser()
     parser.add_argument(
         "--daemonize", action="store_true", default=False,
@@ -198,7 +199,7 @@ def parse_args():
         help="Specify the working directory of the process, which affects "
             "all relative paths on command line and config file. Default "
             "current directory")
-    return parser.parse_args()
+    return parser.parse_args(args)
 
 def main():
 
@@ -210,7 +211,7 @@ def main():
     logger.addHandler(streamHandler)
 
     # Parse command line arguments
-    args = parse_args()
+    args = parse_args(sys.argv)
 
     # Start the bot!
     runner = FortunebotRunner(args.daemonize, args.pidpath,
