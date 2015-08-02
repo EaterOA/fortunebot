@@ -22,31 +22,60 @@ logger = logging.getLogger("fortunebot")
 class FortunebotRunner(object):
 
     def __init__(self, daemonize, pidpath, logpath, confpath, workpath):
-        self.workpath = os.path.abspath(workpath)
-        try:
-            os.chdir(self.workpath)
-        except Exception as ex:
-            logger.error("{0}".format(ex))
-            os._exit(1)
         self.daemonize = daemonize
-        self.pidpath = os.path.abspath(pidpath)
-        self.logpath = os.path.abspath(logpath)
+        self.workpath = os.path.abspath(workpath)
+        self.pidpath = self.resolved(pidpath)
+        self.logpath = self.resolved(logpath)
         self.confpaths = [
             os.path.join(
                 appdirs.user_config_dir("fortunebot"), "fortunebot.conf"),
-            os.path.abspath("fortunebot.conf"),
+            self.resolved("fortunebot.conf"),
+            self.resolved(confpath),
         ]
-        if os.path.abspath(confpath) not in self.confpaths:
-            self.confpaths.append(os.path.abspath(confpath))
+        try:
+            self.bot = FortuneBot()
+        except Exception as ex:
+            die("Died when constructing bot: {}".format(ex))
+
+    def resolved(self, path):
+        return os.path.abspath(os.path.join(self.workpath, path))
+
+    def start(self):
+        if self.status():
+            die("Bot already running!")
+
+        self.setup_signals()
+
+        if self.daemonize:
+            self.send_background()
+            self.redirect_IO()
+            self.setup_logging()
+            self.writepid()
+
+        try:
+            os.chdir(self.workpath)
+        except Exception as ex:
+            die("Died while changing to workpath: {}".format(ex))
+
+        logger.info("Starting bot")
+        try:
+            self.bot.load_config(self.confpaths)
+            self.bot.start()
+        except Exception:
+            logger.exception("Bot died:")
+        finally:
+            self.clean()
+            os._exit(1)
+
+    def setup_signals(self):
+        """
+        Register signal handlers
+        """
         signal.signal(signal.SIGTERM, self.sigterm_handler)
         signal.signal(signal.SIGINT, self.sigterm_handler)
         signal.signal(signal.SIGHUP, self.sighup_handler)
         signal.siginterrupt(signal.SIGHUP, False)
-        try:
-            self.bot = FortuneBot()
-        except Exception as ex:
-            logger.error("{0}".format(ex))
-            os._exit(1)
+        logger.info("Set up signal handlers")
 
     def setup_logging(self):
         """
@@ -59,8 +88,7 @@ class FortunebotRunner(object):
             hdlr.setFormatter(fmtr)
             logger.addHandler(hdlr)
         except IOError as e:
-            logger.error("Unable to set up logging at {0}. {1}".format(self.logpath, e.strerror))
-            os._exit(1)
+            die("Unable to set up logging at {}. {}".format(self.logpath, e.strerror))
         logger.info("Set up log file")
 
     def send_background(self):
@@ -78,8 +106,7 @@ class FortunebotRunner(object):
             os.chdir("/")
             os.umask(0)
         except OSError as e:
-            logger.error("Unable to fork into background. {0}".format(e.strerror))
-            os._exit(1)
+            die("Unable to fork into background. {}".format(e.strerror))
         logger.info("Forked into background")
 
     def redirect_IO(self):
@@ -106,8 +133,7 @@ class FortunebotRunner(object):
             open(os.devnull, "w")
             open(os.devnull, "w")
         except IOError as e:
-            logger.error("Unable to redirect IO. {0}".format(e.strerror))
-            os._exit(1)
+            die("Unable to redirect IO. {}".format(e.strerror))
         logger.info("Redirected IO to /dev/null")
 
     def writepid(self):
@@ -119,31 +145,8 @@ class FortunebotRunner(object):
             pidfile.write(str(os.getpid()))
             pidfile.close()
         except IOError as e:
-            logger.error("Unable to write pidfile at {0}: {1}".format(self.pidpath, e.strerror))
-            os._exit(1)
+            die("Unable to write pidfile at {}: {}".format(self.pidpath, e.strerror))
         logger.info("Wrote pidfile")
-
-    def start(self):
-        if self.status():
-            logger.error("Bot already running!")
-            os._exit(1)
-
-        if self.daemonize:
-            self.send_background()
-            self.redirect_IO()
-            self.setup_logging()
-            self.writepid()
-            os.chdir(self.workpath)
-
-        logger.info("Starting bot")
-        try:
-            self.bot.load_config(self.confpaths)
-            self.bot.start()
-        except Exception as ex:
-            logger.exception("Bot died:")
-        finally:
-            self.clean()
-            os._exit(1)
 
     def getpid(self):
         try:
@@ -158,7 +161,7 @@ class FortunebotRunner(object):
         pid = self.getpid()
         if not pid:
             return False
-        return os.path.exists("/proc/{0}".format(pid))
+        return os.path.exists("/proc/{}".format(pid))
 
     def clean(self):
         if self.daemonize:
@@ -167,7 +170,7 @@ class FortunebotRunner(object):
                 if os.path.exists(self.pidpath):
                     os.remove(self.pidpath)
             except OSError as e:
-                logger.warning("Problem encountered deleting pidfile: {0}".format(e.strerror))
+                logger.warning("Problem encountered deleting pidfile: {}".format(e.strerror))
 
     def sigterm_handler(self, signum, frame):
         logger.info("Disconnecting bot...")
@@ -201,6 +204,10 @@ def parse_args(args):
             "current directory")
     return parser.parse_args(args)
 
+def die(msg, code=1):
+    logger.error(msg)
+    os._exit(1)
+
 def main():
 
     # Set up basic stream logging
@@ -211,7 +218,7 @@ def main():
     logger.addHandler(streamHandler)
 
     # Parse command line arguments
-    args = parse_args(sys.argv)
+    args = parse_args(sys.argv[1:])
 
     # Start the bot!
     runner = FortunebotRunner(args.daemonize, args.pidpath,

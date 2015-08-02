@@ -20,7 +20,6 @@ CONFIG_SRC_NAME = "config/fortunebot.conf.example"
 CONFIG_NAME = "fortunebot.conf"
 
 def main():
-
     src_file = resource_filename(APP, CONFIG_SRC_NAME)
     dest_dir = user_config_dir(APP)
     dest_file = os.path.join(dest_dir, CONFIG_NAME)
