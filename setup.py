@@ -21,6 +21,7 @@ setup(
         'appdirs',
         'requests',
         'six',
+        'mock',
     ],
     entry_points={
         'console_scripts': [
