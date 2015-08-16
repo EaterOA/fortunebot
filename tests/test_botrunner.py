@@ -1,3 +1,6 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import os
 import mock
 
@@ -5,22 +8,22 @@ from fortunebot import botrunner
 
 MODULE = 'fortunebot.botrunner'
 
-class TestFortunebotRunner():
+RELATIVE_FILE = "sup.txt"
+ABSOLUTE_FILE = "/sup.txt"
 
-    RELATIVE_FILE = "sup.txt"
-    ABSOLUTE_FILE = "/sup.txt"
+class TestFortunebotRunner():
 
     def setup(self):
         default_args = get_default_args()
         self.runner = botrunner.FortunebotRunner(**default_args)
 
     def test_resolved_relative(self):
-        s = self.runner.resolved(self.RELATIVE_FILE)
-        assert s == os.path.abspath(self.RELATIVE_FILE)
+        s = self.runner.resolved(RELATIVE_FILE)
+        assert s == os.path.abspath(RELATIVE_FILE)
 
     def test_resolved_absolute(self):
-        s = self.runner.resolved(self.ABSOLUTE_FILE)
-        assert s == self.ABSOLUTE_FILE
+        s = self.runner.resolved(ABSOLUTE_FILE)
+        assert s == ABSOLUTE_FILE
 
     @mock.patch(MODULE + '.os', autospec=True)
     def test_send_background(self, mock_os):
