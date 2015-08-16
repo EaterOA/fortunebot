@@ -16,7 +16,7 @@ import resource
 import logging
 import appdirs
 from argparse import ArgumentParser
-from fortunebot.bot import FortuneBot
+from fortunebot.bot import Fortunebot
 logger = logging.getLogger("fortunebot")
 
 class FortunebotRunner(object):
@@ -33,7 +33,7 @@ class FortunebotRunner(object):
             self.resolved(confpath),
         ]
         try:
-            self.bot = FortuneBot()
+            self.bot = Fortunebot()
         except Exception as ex:
             die("Died when constructing bot: {}".format(ex))
 

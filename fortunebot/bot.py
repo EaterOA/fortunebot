@@ -26,10 +26,10 @@ irclog.addHandler(logging.StreamHandler())
 irclog.setLevel("DEBUG")
 """
 
-class FortuneBot(irc.bot.SingleServerIRCBot):
+class Fortunebot(irc.bot.SingleServerIRCBot):
 
     def __init__(self):
-        super(FortuneBot, self).__init__([], "", "")
+        super(Fortunebot, self).__init__([], "", "")
         self.config = {}
         self.scripts = {}
         self.help_msg = {}
