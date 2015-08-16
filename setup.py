@@ -21,6 +21,7 @@ setup(
         'appdirs',
         'requests',
         'six',
+        'nose',
         'mock',
     ],
     entry_points={

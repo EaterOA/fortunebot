@@ -13,4 +13,5 @@ def to_unicode(s):
 
 def strip_unprintable(s):
     illegal = {i: None for i in six.moves.xrange(32)}
+    illegal[127] = None
     return s.translate(illegal)
